@@ -137,7 +137,6 @@
       <button class="tab-btn" id="tabRegister">Đăng ký</button>
     </div>
 
-    <!-- Form đăng nhập -->
     <div class="form-panel active" id="loginPanel">
       <form id="loginForm">
         <div class="form-group">
@@ -153,7 +152,6 @@
       </form>
     </div>
 
-    <!-- Form đăng ký -->
     <div class="form-panel" id="registerPanel">
       <form id="registerForm">
         <div class="form-group">
@@ -180,11 +178,8 @@
   </div>
 
   <script>
-    // ======= CẤU HÌNH BACKEND =======
-    const API_BASE = 'https://your-backend.com/api'; // <-- Thay bằng URL thật
-    // =================================
+    const API_BASE = 'https://your-backend.com/api';
 
-    // Chuyển tab
     const tabLogin = document.getElementById('tabLogin');
     const tabRegister = document.getElementById('tabRegister');
     const loginPanel = document.getElementById('loginPanel');
@@ -197,6 +192,7 @@
       registerPanel.classList.remove('active');
       clearMessages();
     });
+
     tabRegister.addEventListener('click', () => {
       tabRegister.classList.add('active');
       tabLogin.classList.remove('active');
@@ -211,14 +207,12 @@
       document.getElementById('registerSuccess').style.display = 'none';
     }
 
-    // Lưu token + chuyển trang
     function loginSuccess(token, name) {
       localStorage.setItem('authToken', token);
       localStorage.setItem('shipperName', name);
       window.location.href = 'index.html';
     }
 
-    // ---------- API CALLS ----------
     async function apiLogin(email, password) {
       const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
@@ -229,7 +223,7 @@
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message || 'Đăng nhập thất bại');
       }
-      return res.json(); // { token, user: { name } }
+      return res.json();
     }
 
     async function apiRegister(name, email, password) {
@@ -242,10 +236,9 @@
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message || 'Đăng ký thất bại');
       }
-      return res.json(); // { token, user: { name } }
+      return res.json();
     }
 
-    // ---------- HANDLERS ----------
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('loginEmail').value.trim();
