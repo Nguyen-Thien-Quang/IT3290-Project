@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>Shipper Dashboard · FoodShip</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      background: #FFFFFF;
+      color: #000;
+      line-height: 1.4;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .app-layout {
+      display: flex;
+      width: 100%;
+      max-width: 1400px;
+      height: 95vh;
+      background: #FFFFFF;
+      border: 1px solid #DDD;
+      overflow: hidden;
+    }
+    .sidebar {
+      width: 240px;
+      background: #FFFFFF;
+      border-right: 1px solid #DDD;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 0;
+      flex-shrink: 0;
+    }
+    .logo-area {
+      font-weight: 700;
+      font-size: 18px;
+      color: #B8860B;
+      padding: 0 20px 20px;
+      border-bottom: 1px solid #E5E5E5;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .nav-menu { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 8px 0; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; font-weight: 500; font-size: 14px; color: #333;
+      cursor: pointer; background: transparent; border: none; text-align: left;
+      border-left: 3px solid transparent; transition: background 0.1s, border-color 0.1s;
+    }
+    .nav-item i { width: 18px; color: #666; font-size: 14px; }
+    .nav-item:hover { background: #F5F5F5; }
+    .nav-item.active {
+      background: #F8F8F8; color: #000; font-weight: 700;
+      border-left: 3px solid #B8860B;
+    }
+    .nav-item.active i { color: #B8860B; }
+    .sidebar-footer {
+      padding: 16px 20px; border-top: 1px solid #E5E5E5;
+      display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; color: #333;
+    }
+    .sidebar-avatar { width: 34px; height: 34px; border-radius: 4px; object-fit: cover; border: 1px solid #DDD; }
+    .main-wrapper { flex: 1; display: flex; flex-direction: column; background: #F8F8F8; overflow-y: auto; }
+    .header {
+      background: #FFFFFF; height: 64px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; border-bottom: 1px solid #DDD; position: sticky; top: 0; z-index: 10;
+    }
+    .page-title { font-size: 22px; font-weight: 700; color: #000; }
+    .header-right { display: flex; align-items: center; gap: 12px; position: relative; }
+    .header-avatar { width: 36px; height: 36px; border-radius: 4px; object-fit: cover; border: 1px solid #DDD; cursor: pointer; }
+    .header-shipper-name { font-weight: 600; font-size: 15px; color: #000; cursor: pointer; }
+    .dropdown-menu {
+      position: absolute; top: 48px; right: 0; background: #FFFFFF; border: 1px solid #DDD;
+      border-radius: 4px; min-width: 180px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); display: none; z-index: 20;
+    }
+    .dropdown-menu.show { display: block; }
+    .dropdown-item {
+      padding: 10px 16px; font-size: 14px; color: #333; cursor: pointer;
+      border-bottom: 1px solid #F0F0F0; display: flex; align-items: center; gap: 8px;
+      transition: background 0.1s;
+    }
+    .dropdown-item:last-child { border-bottom: none; }
+    .dropdown-item:hover { background: #F5F5F5; color: #B8860B; }
+
+    .content { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 24px; }
+    .page-section { display: none; flex-direction: column; gap: 24px; }
+    .page-section.active { display: flex; }
+    .card { background: #FFFFFF; border: 1px solid #DDD; border-radius: 4px; padding: 20px; }
+    .profile-header { display: flex; align-items: center; gap: 24px; padding-bottom: 20px; border-bottom: 1px solid #E5E5E5; }
+    .large-avatar { width: 96px; height: 96px; border-radius: 4px; object-fit: cover; border: 1px solid #DDD; }
+    .profile-name-large { font-size: 24px; font-weight: 700; color: #000; }
+    .profile-id-badge { font-size: 14px; color: #555; background: #F0F0F0; padding: 2px 10px; border-radius: 2px; display: inline-block; margin-top: 4px; }
+    .profile-header .logout-btn {
+      margin-left: auto; background: #C62828; color: white; border: none; padding: 10px 20px;
+      font-weight: 600; font-size: 14px; cursor: pointer; border-radius: 3px;
+      transition: background 0.2s;
+    }
+    .profile-header .logout-btn:hover { background: #B71C1C; }
+
+    .info-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .info-table td { padding: 12px 8px; border-bottom: 1px solid #EEEEEE; font-size: 14px; vertical-align: top; }
+    .info-table td:first-child { font-weight: 600; color: #333; width: 30%; }
+    .section-title { font-size: 18px; font-weight: 700; color: #000; padding-bottom: 12px; border-bottom: 1px solid #E5E5E5; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .extra-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; }
+    .extra-item { display: flex; flex-direction: column; gap: 4px; }
+    .extra-label { font-size: 13px; color: #666; font-weight: 500; }
+    .extra-value { font-size: 14px; font-weight: 600; color: #000; }
+    .action-buttons { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
+    .btn {
+      border: 1px solid #DDD; background: #FFFFFF; padding: 12px 22px; font-weight: 600; font-size: 14px;
+      cursor: pointer; border-radius: 3px; display: inline-flex; align-items: center; gap: 6px;
+      color: #333; transition: all 0.2s;
+    }
+    .btn-primary { background: #B8860B; border-color: #B8860B; color: white; }
+    .btn-primary:hover { background: #9E7609; border-color: #9E7609; }
+    .btn-danger { background: #C62828; border-color: #C62828; color: white; }
+    .btn-danger:hover { background: #B71C1C; }
+    .btn-outline { background: white; border: 1px solid #CCC; }
+    .btn-outline:hover { background: #FDF3E0; border-color: #B8860B; color: #B8860B; }
+
+    .orders-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+    @media (max-width: 900px) { .orders-grid { grid-template-columns: 1fr; } }
+    .order-card {
+      background: #FFFFFF; border: 1px solid #DDD; border-radius: 6px; padding: 20px;
+      display: flex; flex-direction: column; transition: all 0.2s;
+    }
+    .order-card:hover { border-color: #B8860B; box-shadow: 0 4px 12px rgba(184, 134, 11, 0.08); }
+    .order-card.accepted-highlight { border-left: 5px solid #B8860B; }
+    .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .order-id { font-weight: 700; font-size: 16px; }
+    .status-badge { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 3px; background: #F0F0F0; color: #555; text-transform: uppercase; border: 1px solid #DDD; }
+    .status-badge.shipping { background: #FFF3E0; color: #B8860B; border-color: #FFE0B2; }
+    .order-body { display: flex; justify-content: space-between; margin: 12px 0 16px; font-size: 15px; color: #333; }
+    .order-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; border-top: 1px solid #EEE; padding-top: 14px; }
+    .total { font-weight: 700; font-size: 17px; color: #B8860B; }
+    .btn-group { display: flex; gap: 8px; }
+    .empty-message { grid-column: span 2; background: white; border: 1px dashed #DDD; padding: 50px; text-align: center; color: #888; border-radius: 4px; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; visibility: hidden; opacity: 0; transition: 0.15s; }
+    .modal-overlay.active { visibility: visible; opacity: 1; }
+    .modal-dialog { background: white; border: 1px solid #DDD; border-radius: 6px; padding: 28px 24px; max-width: 500px; width: 90%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto; }
+    .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; border-bottom: 1px solid #EEE; padding-bottom: 12px; }
+    .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F5F5F5; font-size: 14px; }
+    .btn-close-modal { margin-top: 20px; width: 100%; background: #F0F0F0; border: 1px solid #DDD; padding: 10px; font-weight: 600; cursor: pointer; border-radius: 3px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; color: #333; }
+    .form-group input { width: 100%; padding: 10px; border: 1px solid #DDD; border-radius: 4px; font-size: 14px; font-family: inherit; }
+    .form-group input:focus { border-color: #B8860B; outline: none; }
+    .form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="logo-area"><i class="fas fa-utensils"></i> FoodShip</div>
+    <nav class="nav-menu">
+      <button class="nav-item" data-page="profile"><i class="fas fa-user-circle"></i> Thông tin cá nhân</button>
+      <button class="nav-item active" data-page="pending"><i class="fas fa-clipboard-list"></i> Đơn hàng hiện tại</button>
+      <button class="nav-item" data-page="accepted"><i class="fas fa-truck"></i> Đơn hàng nhận giao</button>
+    </nav>
+    <div class="sidebar-footer">
+      <img src="https://gamek.mediacdn.vn/zoom/320_200/133514250583805952/2022/4/4/photo1649082601804-1649082602466587223501.jpg" alt="shipper" class="sidebar-avatar" id="sidebarAvatar">
+      <span id="sidebarShipperName">...</span>
+    </div>
+  </aside>
+
+  <div class="main-wrapper">
+    <header class="header">
+      <span class="page-title" id="headerTitle">Đơn hàng hiện tại</span>
+      <div class="header-right" id="headerRight">
+        <span class="header-shipper-name" id="headerShipperName">...</span>
+        <img src="https://gamek.mediacdn.vn/zoom/320_200/133514250583805952/2022/4/4/photo1649082601804-1649082602466587223501.jpg" alt="avatar" class="header-avatar" id="headerAvatar">
+        <div class="dropdown-menu" id="dropdownMenu">
+          <div class="dropdown-item" id="dropdownProfile"><i class="fas fa-user"></i> Thông tin cá nhân</div>
+          <div class="dropdown-item" id="dropdownLogout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content" id="mainContent">
+      <div class="page-section" id="profilePage">
+        <div class="card profile-header">
+          <img src="https://gamek.mediacdn.vn/zoom/320_200/133514250583805952/2022/4/4/photo1649082601804-1649082602466587223501.jpg" alt="avatar" class="large-avatar" id="profileAvatarLarge">
+          <div>
+            <div class="profile-name-large" id="profileNameLarge">...</div>
+            <span class="profile-id-badge" id="profileIdLarge">...</span>
+          </div>
+          <button class="btn btn-danger logout-btn" id="profileLogoutBtn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</button>
+        </div>
+        <div class="card">
+          <div class="section-title"><i class="fas fa-id-card"></i> Thông tin cá nhân</div>
+          <table class="info-table" id="personalInfoTable"></table>
+        </div>
+        <div class="card">
+          <div class="section-title"><i class="fas fa-chart-bar"></i> Thông tin hoạt động</div>
+          <div class="extra-info-grid">
+            <div class="extra-item"><span class="extra-label">Trạng thái hoạt động</span><span class="extra-value" style="color:#B8860B;">● Đang hoạt động</span></div>
+            <div class="extra-item"><span class="extra-label">Số đơn đã giao</span><span class="extra-value" id="totalOrdersDisplay">0</span></div>
+            <div class="extra-item"><span class="extra-label">Khu vực hoạt động</span><span class="extra-value" id="areaDisplay">...</span></div>
+            <div class="extra-item"><span class="extra-label">Ngày tham gia</span><span class="extra-value" id="joinDateDisplay">...</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-title"><i class="fas fa-cog"></i> Tùy chọn</div>
+          <div class="action-buttons">
+            <button class="btn btn-outline" id="editProfileBtn"><i class="fas fa-pen"></i> Cập nhật thông tin</button>
+            <button class="btn btn-outline" id="addOrderBtn"><i class="fas fa-plus-circle"></i> Thêm đơn hàng mới</button>
+          </div>
+        </div>
+      </div>
+      <div class="page-section active" id="pendingPage"><div class="orders-grid" id="pendingOrdersGrid"></div></div>
+      <div class="page-section" id="acceptedPage"><div class="orders-grid" id="acceptedOrdersGrid"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="detailModal">
+  <div class="modal-dialog"><div class="modal-title"><i class="fas fa-receipt" style="color:#B8860B;"></i> Chi tiết đơn hàng</div><div id="modalContent"></div><button class="btn-close-modal" id="closeDetailModalBtn">Đóng</button></div>
+</div>
+<div class="modal-overlay" id="profileFormModal">
+  <div class="modal-dialog">
+    <div class="modal-title"><i class="fas fa-user-edit" style="color:#B8860B;"></i> Cập nhật thông tin</div>
+    <form id="profileForm">
+      <div class="form-group"><label>Họ và tên</label><input type="text" id="formName" required></div>
+      <div class="form-group"><label>Email</label><input type="email" id="formEmail" required></div>
+      <div class="form-group"><label>Số điện thoại</label><input type="text" id="formPhone" required></div>
+      <div class="form-group"><label>Ngày sinh</label><input type="text" id="formDob"></div>
+      <div class="form-group"><label>Phương tiện</label><input type="text" id="formVehicle"></div>
+      <div class="form-group"><label>Link ảnh đại diện</label><input type="url" id="formAvatar"></div>
+      <div class="form-actions"><button type="button" class="btn btn-outline" id="closeProfileModalBtn">Hủy</button><button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu</button></div>
+    </form>
+  </div>
+</div>
+<div class="modal-overlay" id="orderFormModal">
+  <div class="modal-dialog">
+    <div class="modal-title"><i class="fas fa-cart-plus" style="color:#B8860B;"></i> Thêm đơn hàng mới</div>
+    <form id="orderForm">
+      <div class="form-group"><label>Tên khách hàng</label><input type="text" id="formCustomer" required></div>
+      <div class="form-group"><label>Tổng tiền (VND)</label><input type="number" id="formTotal" required></div>
+      <div class="form-group"><label>Phương thức thanh toán</label><input type="text" id="formPayment" required></div>
+      <div class="form-actions"><button type="button" class="btn btn-outline" id="closeOrderModalBtn">Hủy</button><button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm đơn</button></div>
+    </form>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const API_BASE = 'https://your-backend.com/api';
+    const token = localStorage.getItem('authToken');
+    if (!token) window.location.href = 'login.html';
+
+    function authHeaders() {
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+    }
+
+    function logout() {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('shipperName');
+      window.location.href = 'login.html';
+    }
+
+    let shipper = {
+      id: "",
+      name: localStorage.getItem('shipperName') || "Shipper",
+      avatar: "https://gamek.mediacdn.vn/zoom/320_200/133514250583805952/2022/4/4/photo1649082601804-1649082602466587223501.jpg",
+      dob: "",
+      email: "",
+      phone: "",
+      vehicle: "",
+      totalOrders: 0,
+      area: "",
+      joinDate: ""
+    };
+
+    let pendingOrders = [];
+    let acceptedOrders = [];
+
+    async function fetchShipperProfile() {
+      const res = await fetch(`${API_BASE}/shipper/me`, { headers: authHeaders() });
+      if (res.status === 401) { logout(); return; }
+      if (!res.ok) throw new Error('Lỗi tải profile');
+      const data = await res.json();
+      shipper = { ...shipper, ...data.user };
+      localStorage.setItem('shipperName', shipper.name);
+      refreshAllUI();
+    }
+
+    async function updateShipperProfile(updatedData) {
+      const res = await fetch(`${API_BASE}/shipper/me`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify(updatedData)
+      });
+      if (res.status === 401) { logout(); return; }
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Cập nhật thất bại');
+      }
+      const data = await res.json();
+      shipper = { ...shipper, ...data.user };
+      refreshAllUI();
+    }
+
+    async function fetchOrders(status) {
+      const res = await fetch(`${API_BASE}/orders?status=${status}`, { headers: authHeaders() });
+      if (res.status === 401) { logout(); return []; }
+      if (!res.ok) throw new Error('Lỗi tải đơn hàng');
+      return res.json();
+    }
+
+    async function loadAllOrders() {
+      try {
+        const [pending, accepted] = await Promise.all([
+          fetchOrders('pending'),
+          fetchOrders('accepted')
+        ]);
+        pendingOrders = pending;
+        acceptedOrders = accepted;
+        renderOrderLists();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function acceptOrder(orderId) {
+      const res = await fetch(`${API_BASE}/orders/${orderId}/accept`, {
+        method: 'PUT',
+        headers: authHeaders()
+      });
+      if (res.status === 401) { logout(); return; }
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.message || 'Không thể nhận đơn');
+        return;
+      }
+      await loadAllOrders();
+      await fetchShipperProfile();
+    }
+
+    async function cancelOrder(orderId) {
+      const res = await fetch(`${API_BASE}/orders/${orderId}/cancel`, {
+        method: 'PUT',
+        headers: authHeaders()
+      });
+      if (res.status === 401) { logout(); return; }
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.message || 'Không thể hủy đơn');
+        return;
+      }
+      await loadAllOrders();
+    }
+
+    async function createOrder(orderData) {
+      const res = await fetch(`${API_BASE}/orders`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(orderData)
+      });
+      if (res.status === 401) { logout(); return; }
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.message || 'Thêm đơn thất bại');
+        return;
+      }
+      await loadAllOrders();
+    }
+
+    function refreshAllUI() {
+      document.getElementById('sidebarShipperName').textContent = shipper.name;
+      document.getElementById('sidebarAvatar').src = shipper.avatar;
+      document.getElementById('headerShipperName').textContent = shipper.name;
+      document.getElementById('headerAvatar').src = shipper.avatar;
+      document.getElementById('profileAvatarLarge').src = shipper.avatar;
+      document.getElementById('profileNameLarge').textContent = shipper.name;
+      document.getElementById('profileIdLarge').textContent = shipper.id;
+      document.getElementById('personalInfoTable').innerHTML = `
+        <tr><td>ID Shipper</td><td>${shipper.id}</td></tr>
+        <tr><td>Tên</td><td>${shipper.name}</td></tr>
+        <tr><td>Ngày sinh</td><td>${shipper.dob || 'Chưa cập nhật'}</td></tr>
+        <tr><td>Email</td><td>${shipper.email || 'Chưa cập nhật'}</td></tr>
+        <tr><td>Số điện thoại</td><td>${shipper.phone || 'Chưa cập nhật'}</td></tr>
+        <tr><td>Phương tiện</td><td>${shipper.vehicle || 'Chưa cập nhật'}</td></tr>`;
+      document.getElementById('totalOrdersDisplay').textContent = shipper.totalOrders + ' đơn';
+      document.getElementById('areaDisplay').textContent = shipper.area || 'Chưa cập nhật';
+      document.getElementById('joinDateDisplay').textContent = shipper.joinDate || 'Chưa cập nhật';
+      renderOrderLists();
+    }
+
+    function createOrderCard(order, type) {
+      const isAccepted = type === 'accepted';
+      const statusClass = order.status === 'đang giao' ? 'shipping' : '';
+      const highlight = isAccepted ? 'accepted-highlight' : '';
+      return `<div class="order-card ${highlight}" data-order-id="${order.id}">
+        <div class="order-header"><span class="order-id">#${order.id}</span><span class="status-badge ${statusClass}">${order.status}</span></div>
+        <div class="order-body"><span><i class="far fa-user"></i> ${order.customerName}</span><span><i class="far fa-clock"></i> ${order.orderTime}</span></div>
+        <div class="order-footer"><span class="total">${order.total.toLocaleString('vi-VN')}đ</span>
+          <div class="btn-group">
+            <button class="btn btn-outline view-detail-btn" data-id="${order.id}"><i class="fas fa-eye"></i> Chi tiết</button>
+            ${!isAccepted ? '<button class="btn btn-primary accept-btn" data-id="' + order.id + '"><i class="fas fa-check-circle"></i> Nhận giao</button>' : '<button class="btn btn-danger cancel-btn" data-id="' + order.id + '"><i class="fas fa-times-circle"></i> Hủy đơn</button>'}
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function renderOrderLists() {
+      document.getElementById('pendingOrdersGrid').innerHTML = pendingOrders.length ? pendingOrders.map(o => createOrderCard(o, 'pending')).join('') : '<div class="empty-message">Không có đơn chờ giao</div>';
+      document.getElementById('acceptedOrdersGrid').innerHTML = acceptedOrders.length ? acceptedOrders.map(o => createOrderCard(o, 'accepted')).join('') : '<div class="empty-message">Chưa có đơn đang giao</div>';
+    }
+
+    const detailModal = document.getElementById('detailModal');
+    function showDetail(orderId) {
+      const order = [...pendingOrders, ...acceptedOrders].find(o => o.id == orderId);
+      if (!order) return;
+      document.getElementById('modalContent').innerHTML = `
+        <div class="detail-row"><strong>Mã đơn</strong><span>${order.id}</span></div>
+        <div class="detail-row"><strong>Khách hàng</strong><span>${order.customerName}</span></div>
+        <div class="detail-row"><strong>Thời gian đặt</strong><span>${order.orderTime}</span></div>
+        <div class="detail-row"><strong>Trạng thái</strong><span style="color:#B8860B;">${order.status}</span></div>
+        <div class="detail-row"><strong>Tổng tiền</strong><span>${order.total.toLocaleString('vi-VN')}đ</span></div>
+        <div class="detail-row"><strong>Thanh toán</strong><span>${order.paymentMethod}</span></div>`;
+      detailModal.classList.add('active');
+    }
+
+    const profileFormModal = document.getElementById('profileFormModal');
+    document.getElementById('editProfileBtn').addEventListener('click', () => {
+      document.getElementById('formName').value = shipper.name;
+      document.getElementById('formEmail').value = shipper.email;
+      document.getElementById('formPhone').value = shipper.phone;
+      document.getElementById('formDob').value = shipper.dob;
+      document.getElementById('formVehicle').value = shipper.vehicle;
+      document.getElementById('formAvatar').value = shipper.avatar;
+      profileFormModal.classList.add('active');
+    });
+
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const updated = {
+        name: document.getElementById('formName').value,
+        email: document.getElementById('formEmail').value,
+        phone: document.getElementById('formPhone').value,
+        dob: document.getElementById('formDob').value,
+        vehicle: document.getElementById('formVehicle').value,
+        avatar: document.getElementById('formAvatar').value || shipper.avatar,
+      };
+      try {
+        await updateShipperProfile(updated);
+        profileFormModal.classList.remove('active');
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    const orderFormModal = document.getElementById('orderFormModal');
+    document.getElementById('addOrderBtn').addEventListener('click', () => { orderFormModal.classList.add('active'); });
+    document.getElementById('orderForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newOrder = {
+        customerName: document.getElementById('formCustomer').value,
+        total: parseInt(document.getElementById('formTotal').value),
+        paymentMethod: document.getElementById('formPayment').value,
+        status: 'chờ giao',
+        orderTime: new Date().toLocaleString('vi-VN')
+      };
+      await createOrder(newOrder);
+      orderFormModal.classList.remove('active');
+      switchPage('pending');
+    });
+
+    const navItems = document.querySelectorAll('.nav-item');
+    const pages = {
+      profile: document.getElementById('profilePage'),
+      pending: document.getElementById('pendingPage'),
+      accepted: document.getElementById('acceptedPage')
+    };
+    function switchPage(pageName) {
+      Object.values(pages).forEach(p => p.classList.remove('active'));
+      pages[pageName].classList.add('active');
+      document.getElementById('headerTitle').textContent = pageName === 'profile' ? 'Thông tin cá nhân' : pageName === 'pending' ? 'Đơn hàng hiện tại' : 'Đơn hàng nhận giao';
+      navItems.forEach(item => { item.classList.remove('active'); if (item.dataset.page === pageName) item.classList.add('active'); });
+    }
+    navItems.forEach(item => item.addEventListener('click', () => switchPage(item.dataset.page)));
+
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    document.getElementById('headerAvatar').addEventListener('click', (e) => { e.stopPropagation(); dropdownMenu.classList.toggle('show'); });
+    document.getElementById('headerShipperName').addEventListener('click', (e) => { e.stopPropagation(); dropdownMenu.classList.toggle('show'); });
+    document.addEventListener('click', (e) => { if (!dropdownMenu.contains(e.target)) dropdownMenu.classList.remove('show'); });
+    document.getElementById('dropdownProfile').addEventListener('click', () => { switchPage('profile'); dropdownMenu.classList.remove('show'); });
+    document.getElementById('dropdownLogout').addEventListener('click', logout);
+    document.getElementById('profileLogoutBtn').addEventListener('click', logout);
+
+    document.getElementById('closeDetailModalBtn').addEventListener('click', () => detailModal.classList.remove('active'));
+    document.getElementById('closeProfileModalBtn').addEventListener('click', () => profileFormModal.classList.remove('active'));
+    document.getElementById('closeOrderModalBtn').addEventListener('click', () => orderFormModal.classList.remove('active'));
+    window.addEventListener('click', (e) => { if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('active'); });
+
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.view-detail-btn')) showDetail(e.target.closest('.view-detail-btn').dataset.id);
+      if (e.target.closest('.accept-btn')) acceptOrder(e.target.closest('.accept-btn').dataset.id);
+      if (e.target.closest('.cancel-btn')) cancelOrder(e.target.closest('.cancel-btn').dataset.id);
+    });
+
+    (async function init() {
+      try {
+        await fetchShipperProfile();
+        await loadAllOrders();
+        refreshAllUI();
+      } catch (e) {
+        console.error(e);
+        alert('Không thể tải dữ liệu. Vui lòng đăng nhập lại.');
+        logout();
+      }
+    })();
+  })();
+</script>
+</body>
+</html>
