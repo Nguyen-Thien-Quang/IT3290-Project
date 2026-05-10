@@ -40,8 +40,26 @@
       <artifactId>mssql-jdbc</artifactId>
       <version>12.4.2.jre11</version>
     </dependency>
+
+    <!-- Gson for JSON serialization -->
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.10.1</version>
+    </dependency>
   </dependencies>
   <build>
     <finalName>OnlineFoodWeb</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>3.4.0</version>
+        <configuration>
+          <!-- Static pages live under web/src/main/webapp, not the Maven default src/main/webapp -->
+          <warSourceDirectory>web/src/main/webapp</warSourceDirectory>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 </project>
