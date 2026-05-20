@@ -38,6 +38,7 @@ public class KhachHang {
         this.sdt = sdt;
     }
 
+
     // Getter và Setter
 
     /**
