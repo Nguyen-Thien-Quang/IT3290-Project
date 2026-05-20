@@ -8,279 +8,160 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Roboto', Arial, sans-serif;
-      background: #F5F5F5;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .login-card {
-      background: #FFFFFF;
-      border: 1px solid #DDD;
-      border-radius: 8px;
-      padding: 40px 30px;
-      width: 420px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.05);
-    }
-    .logo {
-      font-size: 28px;
-      font-weight: 700;
-      color: #B8860B;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-    .subtitle {
-      color: #666;
-      font-size: 14px;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .tab-switch {
-      display: flex;
-      border-bottom: 1px solid #DDD;
-      margin-bottom: 24px;
-    }
-    .tab-btn {
-      flex: 1;
-      padding: 12px;
-      font-weight: 600;
-      font-size: 15px;
-      border: none;
-      background: transparent;
-      color: #888;
-      cursor: pointer;
-      transition: 0.2s;
-      border-bottom: 2px solid transparent;
-    }
-    .tab-btn.active {
-      color: #B8860B;
-      border-bottom: 2px solid #B8860B;
-    }
-    .form-panel {
-      display: none;
-    }
-    .form-panel.active {
-      display: block;
-    }
-    .form-group {
-      margin-bottom: 16px;
-    }
-    .form-group label {
-      display: block;
-      font-weight: 600;
-      font-size: 14px;
-      margin-bottom: 6px;
-      color: #333;
-    }
-    .form-group input {
-      width: 100%;
-      padding: 12px 14px;
-      border: 1px solid #DDD;
-      border-radius: 4px;
-      font-size: 15px;
-      font-family: inherit;
-      transition: 0.2s;
-    }
-    .form-group input:focus {
-      border-color: #B8860B;
-      outline: none;
-    }
-    .btn-action {
-      width: 100%;
-      padding: 14px;
-      background: #B8860B;
-      border: none;
-      color: white;
-      font-weight: 700;
-      font-size: 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.2s;
-      margin-top: 8px;
-    }
-    .btn-action:hover {
-      background: #9E7609;
-    }
-    .msg {
-      text-align: center;
-      margin-top: 12px;
-      font-size: 13px;
-      display: none;
-    }
+    body { font-family: 'Roboto', Arial, sans-serif; background: #F5F5F5; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .login-card { background: #FFF; border: 1px solid #DDD; border-radius: 8px; padding: 40px 30px; width: 460px; box-shadow: 0 4px 16px rgba(0,0,0,0.05); }
+    .logo { font-size: 28px; font-weight: 700; color: #B8860B; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .subtitle { color: #666; font-size: 14px; text-align: center; margin-bottom: 20px; }
+    .tab-switch { display: flex; border-bottom: 1px solid #DDD; margin-bottom: 24px; }
+    .tab-btn { flex: 1; padding: 12px; font-weight: 600; font-size: 15px; border: none; background: transparent; color: #888; cursor: pointer; transition: 0.2s; border-bottom: 2px solid transparent; }
+    .tab-btn.active { color: #B8860B; border-bottom: 2px solid #B8860B; }
+    .form-panel { display: none; }
+    .form-panel.active { display: block; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; color: #333; }
+    .form-group input { width: 100%; padding: 10px 12px; border: 1px solid #DDD; border-radius: 4px; font-size: 14px; font-family: inherit; transition: 0.2s; }
+    .form-group input:focus { border-color: #B8860B; outline: none; }
+    .btn-action { width: 100%; padding: 14px; background: #B8860B; border: none; color: white; font-weight: 700; font-size: 16px; border-radius: 4px; cursor: pointer; transition: background 0.2s; margin-top: 8px; }
+    .btn-action:hover { background: #9E7609; }
+    .msg { text-align: center; margin-top: 12px; font-size: 13px; display: none; }
     .msg.error { color: #C62828; }
     .msg.success { color: #2E7D32; }
-    .hint {
-      margin-top: 16px;
-      font-size: 12px;
-      color: #888;
-      background: #F9F9F9;
-      padding: 8px;
-      border-radius: 4px;
-      border: 1px dashed #DDD;
-      text-align: center;
-    }
-    .hint i { color: #B8860B; }
+    .back-link { display: block; text-align: center; margin-top: 16px; color: #B8860B; text-decoration: none; font-size: 14px; }
   </style>
 </head>
 <body>
-  <div class="login-card">
-    <div class="logo"><i class="fas fa-utensils"></i> FoodShip</div>
-    <div class="subtitle">Shipper Dashboard</div>
+<div class="login-card">
+  <div class="logo"><i class="fas fa-utensils"></i> FoodShip</div>
+  <div class="subtitle" id="roleSubtitle">...</div>
 
-    <div class="tab-switch">
-      <button class="tab-btn active" id="tabLogin">Đăng nhập</button>
-      <button class="tab-btn" id="tabRegister">Đăng ký</button>
-    </div>
-
-    <div class="form-panel active" id="loginPanel">
-      <form id="loginForm">
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="loginEmail" placeholder="nghiengiaohang@..." required>
-        </div>
-        <div class="form-group">
-          <label>Mật khẩu</label>
-          <input type="password" id="loginPassword" placeholder="Mật khẩu" required>
-        </div>
-        <button type="submit" class="btn-action"><i class="fas fa-sign-in-alt"></i> Đăng nhập</button>
-        <div class="msg error" id="loginError">Sai email hoặc mật khẩu!</div>
-      </form>
-    </div>
-
-    <div class="form-panel" id="registerPanel">
-      <form id="registerForm">
-        <div class="form-group">
-          <label>Họ và tên</label>
-          <input type="text" id="regName" placeholder="Lữ Văn Bố" required>
-        </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="regEmail" placeholder="email@example.com" required>
-        </div>
-        <div class="form-group">
-          <label>Mật khẩu</label>
-          <input type="password" id="regPassword" placeholder="Tối thiểu 6 ký tự" minlength="6" required>
-        </div>
-        <button type="submit" class="btn-action"><i class="fas fa-user-plus"></i> Đăng ký</button>
-        <div class="msg error" id="registerError"></div>
-        <div class="msg success" id="registerSuccess"></div>
-      </form>
-    </div>
-
-    <div class="hint">
-      <i class="fas fa-info-circle"></i> Đăng nhập để vào Dashboard
-    </div>
+  <div class="tab-switch">
+    <button class="tab-btn active" id="tabLogin">Đăng nhập</button>
+    <button class="tab-btn" id="tabRegister">Đăng ký</button>
   </div>
 
-  <script>
-    const API_BASE = 'https://your-backend.com/api';
+  <div class="form-panel active" id="loginPanel">
+    <form id="loginForm">
+      <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="email@example.com" required></div>
+      <div class="form-group"><label>Mật khẩu</label><input type="password" id="loginPassword" placeholder="Mật khẩu" required></div>
+      <button type="submit" class="btn-action"><i class="fas fa-sign-in-alt"></i> Đăng nhập</button>
+      <div class="msg error" id="loginError"></div>
+    </form>
+  </div>
 
-    const tabLogin = document.getElementById('tabLogin');
-    const tabRegister = document.getElementById('tabRegister');
-    const loginPanel = document.getElementById('loginPanel');
-    const registerPanel = document.getElementById('registerPanel');
+  <div class="form-panel" id="registerPanel">
+    <form id="registerForm">
+      <div id="registerFields"></div>
+      <button type="submit" class="btn-action"><i class="fas fa-user-plus"></i> Đăng ký</button>
+      <div class="msg error" id="registerError"></div>
+      <div class="msg success" id="registerSuccess"></div>
+    </form>
+  </div>
 
-    tabLogin.addEventListener('click', () => {
-      tabLogin.classList.add('active');
-      tabRegister.classList.remove('active');
-      loginPanel.classList.add('active');
-      registerPanel.classList.remove('active');
-      clearMessages();
-    });
+  <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Quay lại chọn vai trò</a>
+</div>
 
-    tabRegister.addEventListener('click', () => {
-      tabRegister.classList.add('active');
-      tabLogin.classList.remove('active');
-      registerPanel.classList.add('active');
-      loginPanel.classList.remove('active');
-      clearMessages();
-    });
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const role = params.get('role') || 'customer';
+  document.getElementById('roleSubtitle').textContent = { customer: 'Khách hàng', shipper: 'Shipper', store: 'Quản lý cửa hàng' }[role] || 'Khách hàng';
 
-    function clearMessages() {
-      document.getElementById('loginError').style.display = 'none';
-      document.getElementById('registerError').style.display = 'none';
-      document.getElementById('registerSuccess').style.display = 'none';
+  function renderRegisterFields() {
+    let html = `
+      <div class="form-group"><label>Email</label><input type="email" id="regEmail" placeholder="email@example.com" required></div>
+      <div class="form-group"><label>Mật khẩu</label><input type="password" id="regPassword" placeholder="Tối thiểu 6 ký tự" minlength="6" required></div>`;
+    if (role === 'customer') {
+      html += `
+        <div class="form-group"><label>Họ và tên</label><input type="text" id="regName" placeholder="Nguyễn Văn A" required></div>
+        <div class="form-group"><label>Ngày sinh</label><input type="date" id="regDob" required></div>
+        <div class="form-group"><label>Địa chỉ</label><input type="text" id="regAddress" placeholder="Số nhà, đường, quận..." required></div>
+        <div class="form-group"><label>Số điện thoại</label><input type="tel" id="regPhone" placeholder="0912345678" pattern="[0-9]{10}" required></div>`;
+    } else if (role === 'shipper') {
+      html += `
+        <div class="form-group"><label>Họ và tên</label><input type="text" id="regName" required></div>
+        <div class="form-group"><label>Số điện thoại</label><input type="text" id="regPhone" required></div>
+        <div class="form-group"><label>Phương tiện</label><input type="text" id="regVehicle" required></div>`;
+    } else if (role === 'store') {
+      html += `
+        <div class="form-group"><label>Tên cửa hàng</label><input type="text" id="regStoreName" required></div>
+        <div class="form-group"><label>Địa chỉ</label><input type="text" id="regAddress" required></div>
+        <div class="form-group"><label>Số điện thoại</label><input type="text" id="regPhone" required></div>`;
     }
+    document.getElementById('registerFields').innerHTML = html;
+  }
+  renderRegisterFields();
 
-    function loginSuccess(token, name) {
-      localStorage.setItem('authToken', token);
-      localStorage.setItem('shipperName', name);
-      window.location.href = 'index.html';
-    }
+  document.getElementById('tabLogin').addEventListener('click', () => switchTab('login'));
+  document.getElementById('tabRegister').addEventListener('click', () => switchTab('register'));
+  function switchTab(tab) {
+    document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+    document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+    document.getElementById('loginPanel').classList.toggle('active', tab === 'login');
+    document.getElementById('registerPanel').classList.toggle('active', tab === 'register');
+    document.getElementById('loginError').style.display = 'none';
+    document.getElementById('registerError').style.display = 'none';
+    document.getElementById('registerSuccess').style.display = 'none';
+  }
 
-    async function apiLogin(email, password) {
-      const res = await fetch(`${API_BASE}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || 'Đăng nhập thất bại');
-      }
-      return res.json();
-    }
+  function getUsers(role) { return JSON.parse(localStorage.getItem('users_' + role) || '[]'); }
+  function saveUsers(role, users) { localStorage.setItem('users_' + role, JSON.stringify(users)); }
 
-    async function apiRegister(name, email, password) {
-      const res = await fetch(`${API_BASE}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || 'Đăng ký thất bại');
-      }
-      return res.json();
-    }
+  document.getElementById('registerForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const errorEl = document.getElementById('registerError');
+    const successEl = document.getElementById('registerSuccess');
+    errorEl.style.display = 'none';
+    successEl.style.display = 'none';
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPassword').value;
+    if (!email || !password) { errorEl.textContent = 'Email và mật khẩu là bắt buộc.'; errorEl.style.display = 'block'; return; }
 
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('loginEmail').value.trim();
-      const password = document.getElementById('loginPassword').value;
-      const errorEl = document.getElementById('loginError');
-      errorEl.style.display = 'none';
-
-      try {
-        const data = await apiLogin(email, password);
-        loginSuccess(data.token, data.user.name);
-      } catch (err) {
-        errorEl.textContent = err.message;
-        errorEl.style.display = 'block';
-      }
-    });
-
-    document.getElementById('registerForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
+    let newUser = { email, password };
+    if (role === 'customer') {
       const name = document.getElementById('regName').value.trim();
-      const email = document.getElementById('regEmail').value.trim();
-      const password = document.getElementById('regPassword').value;
-      const errorEl = document.getElementById('registerError');
-      const successEl = document.getElementById('registerSuccess');
-      errorEl.style.display = 'none';
-      successEl.style.display = 'none';
+      const dob = document.getElementById('regDob').value;
+      const address = document.getElementById('regAddress').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      if (!name || !dob || !address || !phone) { errorEl.textContent = 'Vui lòng điền đầy đủ 6 thông tin.'; errorEl.style.display = 'block'; return; }
+      newUser = { ...newUser, name, dob, address, phone, role: 'customer' };
+    } else if (role === 'shipper') {
+      const name = document.getElementById('regName').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      const vehicle = document.getElementById('regVehicle').value.trim();
+      if (!name || !phone || !vehicle) { errorEl.textContent = 'Vui lòng điền đầy đủ thông tin.'; errorEl.style.display = 'block'; return; }
+      newUser = { ...newUser, name, phone, vehicle, role: 'shipper', avatar: "https://via.placeholder.com/80?text=Shipper", totalOrders: 0, area: "Hà Nội", joinDate: new Date().toLocaleDateString('vi-VN') };
+    } else if (role === 'store') {
+      const storeName = document.getElementById('regStoreName').value.trim();
+      const address = document.getElementById('regAddress').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      if (!storeName || !address || !phone) { errorEl.textContent = 'Vui lòng điền đầy đủ thông tin.'; errorEl.style.display = 'block'; return; }
+      newUser = { ...newUser, storeName, address, phone, role: 'store', description: '', logo: '' };
+    }
 
-      if (!name || !email || password.length < 6) {
-        errorEl.textContent = 'Vui lòng điền đầy đủ thông tin, mật khẩu ít nhất 6 ký tự.';
-        errorEl.style.display = 'block';
-        return;
-      }
+    let users = getUsers(role);
+    if (users.find(u => u.email === email)) { errorEl.textContent = 'Email đã tồn tại.'; errorEl.style.display = 'block'; return; }
+    users.push(newUser);
+    saveUsers(role, users);
+    successEl.textContent = 'Đăng ký thành công! Chuyển sang đăng nhập...';
+    successEl.style.display = 'block';
+    setTimeout(() => { switchTab('login'); document.getElementById('loginEmail').value = email; }, 1000);
+  });
 
-      try {
-        const data = await apiRegister(name, email, password);
-        successEl.textContent = 'Đăng ký thành công! Đang chuyển...';
-        successEl.style.display = 'block';
-        setTimeout(() => loginSuccess(data.token, data.user.name), 800);
-      } catch (err) {
-        errorEl.textContent = err.message;
-        errorEl.style.display = 'block';
-      }
-    });
-  </script>
+  document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errorEl = document.getElementById('loginError');
+    errorEl.style.display = 'none';
+    const users = getUsers(role);
+    const user = users.find(u => u.email === email && u.password === password);
+    if (user) {
+      localStorage.setItem('currentUser', JSON.stringify({ ...user, role }));
+      window.location.href = 'user_profile.html';
+    } else {
+      errorEl.textContent = 'Email hoặc mật khẩu sai!';
+      errorEl.style.display = 'block';
+    }
+  });
+</script>
 </body>
 </html>
