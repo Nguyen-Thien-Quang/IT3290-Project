@@ -100,4 +100,24 @@ public class TaiKhoanDAO {
         }
         return -1;
     }
+    // đăng kí tài khoản Khách hàng sử dụng stored procedure create_user
+    public int createUser(String email, String matKhau, String hoTen, String ngaysinh, String diachi, String sdt) {
+        String query = "exec create_user ?, ?, ?, ?, ?, ?";
+        try(Connection conn = new DBContext().getConnection();
+            PreparedStatement ps = conn.prepareStatement(query)) {
+
+            ps.setString(1, email);
+            ps.setString(2, matKhau);
+            ps.setString(3, hoTen);
+            ps.setString(4, ngaysinh);
+            ps.setString(5, diachi);
+            ps.setString(6, sdt);
+
+            return ps.executeUpdate();
+
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }

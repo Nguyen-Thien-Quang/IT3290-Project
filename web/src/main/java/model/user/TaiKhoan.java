@@ -30,6 +30,12 @@ public class TaiKhoan {
         this.vaiTro = vaiTro;
     }
 
+    public TaiKhoan(String email, String matKhau, String vaiTro) {
+        this.email = email;
+        this.matKhau = matKhau;
+        this.vaiTro = vaiTro;
+    }
+
     // Getter và Setter
 
     /**
