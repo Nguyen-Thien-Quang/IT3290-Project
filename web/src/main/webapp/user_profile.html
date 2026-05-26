@@ -1,29 +1,465 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thông tin khách hàng</title>
-    <link rel="stylesheet" href="assets/css/Style.css">
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-    <link rel="stylesheet" href="assets/user_profile.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>Dashboard · FoodShip</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Roboto', Arial, sans-serif; background: #FFFFFF; color: #000; line-height: 1.4; height: 100vh; display: flex; justify-content: center; align-items: center; }
+    .app-layout { display: flex; width: 100%; max-width: 1400px; height: 95vh; background: #FFFFFF; border: 1px solid #DDD; overflow: hidden; }
+    .sidebar { width: 240px; background: #FFFFFF; border-right: 1px solid #DDD; display: flex; flex-direction: column; padding: 20px 0; flex-shrink: 0; }
+    .logo-area { font-weight: 700; font-size: 18px; color: #B8860B; padding: 0 20px 20px; border-bottom: 1px solid #E5E5E5; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .nav-menu { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 8px 0; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; font-weight: 500; font-size: 14px; color: #333; cursor: pointer; background: transparent; border: none; text-align: left; border-left: 3px solid transparent; transition: background 0.1s, border-color 0.1s; }
+    .nav-item i { width: 18px; color: #666; font-size: 14px; }
+    .nav-item:hover { background: #F5F5F5; }
+    .nav-item.active { background: #F8F8F8; color: #000; font-weight: 700; border-left: 3px solid #B8860B; }
+    .nav-item.active i { color: #B8860B; }
+    .sidebar-footer { padding: 16px 20px; border-top: 1px solid #E5E5E5; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; color: #333; justify-content: space-between; }
+    .sidebar-avatar { width: 34px; height: 34px; border-radius: 4px; object-fit: cover; border: 1px solid #DDD; }
+    .main-wrapper { flex: 1; display: flex; flex-direction: column; background: #F8F8F8; overflow-y: auto; }
+    .header { background: #FFFFFF; height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; border-bottom: 1px solid #DDD; position: sticky; top: 0; z-index: 10; }
+    .page-title { font-size: 22px; font-weight: 700; color: #000; }
+    .header-right { display: flex; align-items: center; gap: 12px; position: relative; }
+    .header-avatar { width: 36px; height: 36px; border-radius: 4px; object-fit: cover; border: 1px solid #DDD; cursor: pointer; }
+    .header-name { font-weight: 600; font-size: 15px; color: #000; cursor: pointer; }
+    .content { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 24px; }
+    .page-section { display: none; flex-direction: column; gap: 24px; }
+    .page-section.active { display: flex; }
+    .card { background: #FFFFFF; border: 1px solid #DDD; border-radius: 4px; padding: 20px; }
+    .section-title { font-size: 18px; font-weight: 700; color: #000; padding-bottom: 12px; border-bottom: 1px solid #E5E5E5; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .btn { border: 1px solid #DDD; background: #FFFFFF; padding: 10px 18px; font-weight: 600; font-size: 14px; cursor: pointer; border-radius: 3px; display: inline-flex; align-items: center; gap: 6px; color: #333; transition: all 0.2s; }
+    .btn-primary { background: #B8860B; border-color: #B8860B; color: white; }
+    .btn-primary:hover { background: #9E7609; }
+    .btn-danger { background: #C62828; border-color: #C62828; color: white; }
+    .btn-danger:hover { background: #B71C1C; }
+    .btn-outline:hover { background: #FDF3E0; border-color: #B8860B; color: #B8860B; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+    .menu-item-card { border: 1px solid #DDD; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 6px; background: #FAFAFA; transition: all 0.2s; }
+    .menu-item-card:hover { border-color: #B8860B; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .menu-item-card .food-name { font-weight: 700; font-size: 15px; }
+    .menu-item-card .food-price { color: #B8860B; font-weight: 700; font-size: 16px; }
+    .menu-item-card .food-desc { font-size: 12px; color: #888; }
+    .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #EEE; }
+    .cart-summary { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 16px; border-top: 2px solid #333; }
+    .cart-total { font-size: 20px; font-weight: 700; color: #B8860B; }
+    .orders-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    @media (max-width: 900px) { .orders-grid { grid-template-columns: 1fr; } .menu-grid { grid-template-columns: repeat(2, 1fr); } }
+    .order-card { background: #FFFFFF; border: 1px solid #DDD; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 8px; transition: all 0.2s; }
+    .order-card:hover { border-color: #B8860B; }
+    .order-card.accepted-highlight { border-left: 5px solid #B8860B; }
+    .order-header { display: flex; justify-content: space-between; align-items: center; }
+    .order-id { font-weight: 700; font-size: 15px; }
+    .status-badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 3px; background: #F0F0F0; color: #555; text-transform: uppercase; border: 1px solid #DDD; }
+    .status-badge.shipping { background: #FFF3E0; color: #B8860B; border-color: #FFE0B2; }
+    .total { font-weight: 700; font-size: 16px; color: #B8860B; }
+    .empty-message { grid-column: span 2; background: white; border: 1px dashed #DDD; padding: 50px; text-align: center; color: #888; border-radius: 4px; }
+    .empty { text-align: center; color: #888; padding: 30px; }
+    .info-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .info-table td { padding: 12px 8px; border-bottom: 1px solid #EEEEEE; font-size: 14px; }
+    .info-table td:first-child { font-weight: 600; color: #333; width: 30%; }
+    .order-tabs { display: flex; gap: 12px; margin-bottom: 16px; }
+    .order-tab { padding: 8px 20px; background: #FFF; border: 1px solid #DDD; border-radius: 4px; cursor: pointer; font-weight: 500; }
+    .order-tab.active { background: #B8860B; color: white; border-color: #B8860B; }
+  </style>
 </head>
 <body>
-<div class="container">
-    <h1><i class="fas fa-user"></i> Tra cứu thông tin khách hàng</h1>
+<div class="app-layout" id="appContainer"></div>
 
-    <div class="form-group">
-        <label for="customerId">Nhập ID tài khoản khách hàng:</label>
-        <input type="number" id="customerId" placeholder="Ví dụ: 1" required>
-    </div>
+<script>
+(function() {
+  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+  if (!currentUser) { window.location.href = 'login.html'; return; }
+  const role = currentUser.role;
 
-    <button id="fetchBtn">Lấy thông tin</button>
+  function generateId() { return 'DH' + Math.random().toString(36).substr(2, 6).toUpperCase(); }
 
-    <div id="result"></div>
-</div>
+  // API mô phỏng
+  async function apiGetOrders() { return JSON.parse(localStorage.getItem('allOrders') || '[]'); }
+  async function apiSaveOrders(orders) { localStorage.setItem('allOrders', JSON.stringify(orders)); }
+  async function apiGetMenu(storeEmail) { return JSON.parse(localStorage.getItem('menu_' + storeEmail) || '[]'); }
+  async function apiSaveMenu(storeEmail, menu) { localStorage.setItem('menu_' + storeEmail, JSON.stringify(menu)); }
+  async function apiUpdateUser(role, user) {
+    const users = JSON.parse(localStorage.getItem('users_' + role) || '[]');
+    const idx = users.findIndex(u => u.email === user.email);
+    if (idx > -1) users[idx] = user;
+    localStorage.setItem('users_' + role, JSON.stringify(users));
+    localStorage.setItem('currentUser', JSON.stringify(user));
+  }
 
-<script src="assets/javascript/user_profile.js"></script>
+  // Menu 20 món mẫu
+  const SAMPLE_MENU = [
+    { id:1, name:"Cơm sườn nướng", price:40000, desc:"Cơm trắng, sườn nướng mật ong" },
+    { id:2, name:"Cơm gà xối mỡ", price:45000, desc:"Gà chiên giòn, cơm chiên" },
+    { id:3, name:"Bún bò Huế", price:50000, desc:"Bún bò cay đặc biệt" },
+    { id:4, name:"Phở bò tái", price:55000, desc:"Phở bò tái nạm" },
+    { id:5, name:"Bánh mì thịt nướng", price:25000, desc:"Bánh mì giòn, thịt nướng" },
+    { id:6, name:"Cháo lòng", price:30000, desc:"Cháo trắng lòng heo" },
+    { id:7, name:"Bún chả Hà Nội", price:45000, desc:"Bún chả nướng than hoa" },
+    { id:8, name:"Mì Quảng", price:40000, desc:"Mì Quảng tôm thịt" },
+    { id:9, name:"Gỏi cuốn", price:35000, desc:"2 cuốn tôm thịt" },
+    { id:10, name:"Chả giò", price:30000, desc:"4 cuốn chả giò" },
+    { id:11, name:"Cơm tấm sườn", price:45000, desc:"Cơm tấm sườn bì chả" },
+    { id:12, name:"Hủ tiếu Nam Vang", price:50000, desc:"Hủ tiếu tôm thịt" },
+    { id:13, name:"Bún mắm", price:45000, desc:"Bún mắm đậm đà" },
+    { id:14, name:"Bò kho", price:55000, desc:"Bò kho bánh mì" },
+    { id:15, name:"Lẩu Thái", price:150000, desc:"Lẩu Thái hải sản" },
+    { id:16, name:"Trà đào", price:25000, desc:"Trà đào cam sả" },
+    { id:17, name:"Cà phê sữa đá", price:20000, desc:"Cà phê đậm vị" },
+    { id:18, name:"Sinh tố bơ", price:30000, desc:"Sinh tố bơ sữa" },
+    { id:19, name:"Nước cam", price:25000, desc:"Nước cam ép tươi" },
+    { id:20, name:"Coca Cola", price:15000, desc:"Lon 330ml" }
+  ];
+
+  if (!localStorage.getItem('allOrders')) localStorage.setItem('allOrders', JSON.stringify([]));
+
+  const appContainer = document.getElementById('appContainer');
+
+  // ===== SHIPPER =====
+  async function renderShipperUI() {
+    const user = currentUser;
+    appContainer.innerHTML = `
+      <aside class="sidebar">
+        <div class="logo-area"><i class="fas fa-utensils"></i> FoodShip</div>
+        <nav class="nav-menu">
+          <button class="nav-item" data-page="profile"><i class="fas fa-user-circle"></i> Thông tin</button>
+          <button class="nav-item active" data-page="pending"><i class="fas fa-clipboard-list"></i> Đơn hàng hiện tại</button>
+          <button class="nav-item" data-page="accepted"><i class="fas fa-truck"></i> Đơn hàng nhận giao</button>
+        </nav>
+        <div class="sidebar-footer"><span>${user.name}</span><button class="btn btn-outline btn-sm" onclick="logout()">Đăng xuất</button></div>
+      </aside>
+      <div class="main-wrapper">
+        <header class="header"><span class="page-title" id="headerTitle">Đơn hàng hiện tại</span></header>
+        <div class="content">
+          <div class="page-section" id="profilePage"><div class="card"><div class="section-title">Thông tin</div><table class="info-table"><tr><td>Tên</td><td>${user.name}</td></tr><tr><td>Email</td><td>${user.email}</td></tr><tr><td>SĐT</td><td>${user.phone}</td></tr><tr><td>Phương tiện</td><td>${user.vehicle||''}</td></tr><tr><td>Số đơn đã giao</td><td>${user.totalOrders||0}</td></tr></table></div></div>
+          <div class="page-section active" id="pendingPage"><div class="orders-grid" id="pendingOrdersGrid"></div></div>
+          <div class="page-section" id="acceptedPage"><div class="orders-grid" id="acceptedOrdersGrid"></div></div>
+        </div>
+      </div>`;
+    bindShipperEvents();
+  }
+
+  async function bindShipperEvents() {
+    const user = currentUser;
+    let orders = await apiGetOrders();
+    let shipper = { ...user };
+
+    function renderOrderLists() {
+      const pending = orders.filter(o => o.status === 'pending');
+      const accepted = orders.filter(o => o.status === 'đang giao');
+      document.getElementById('pendingOrdersGrid').innerHTML = pending.length ? pending.map(o => createOrderCard(o,'pending')).join('') : '<div class="empty-message">Không có đơn chờ</div>';
+      document.getElementById('acceptedOrdersGrid').innerHTML = accepted.length ? accepted.map(o => createOrderCard(o,'accepted')).join('') : '<div class="empty-message">Chưa có đơn đang giao</div>';
+    }
+
+    function createOrderCard(order, type) {
+      return `<div class="order-card ${type==='accepted'?'accepted-highlight':''}">
+        <div class="order-header"><span class="order-id">#${order.id}</span><span class="status-badge ${order.status==='đang giao'?'shipping':''}">${order.status}</span></div>
+        <div>${order.items.map(i=>i.name+' x'+i.quantity).join(', ')}</div>
+        <div class="total">${order.total.toLocaleString('vi-VN')}đ</div>
+        <div class="btn-group">
+          ${type==='pending'?'<button class="btn btn-primary accept-btn" data-id="'+order.id+'">Nhận giao</button>':'<button class="btn btn-danger cancel-btn" data-id="'+order.id+'">Hủy</button>'}
+        </div>
+      </div>`;
+    }
+
+    document.addEventListener('click', async e => {
+      if (e.target.closest('.accept-btn')) {
+        const id = e.target.closest('.accept-btn').dataset.id;
+        const order = orders.find(o=>o.id===id);
+        if (order) { order.status='đang giao'; await apiSaveOrders(orders); shipper.totalOrders=(shipper.totalOrders||0)+1; await apiUpdateUser('shipper',shipper); renderOrderLists(); }
+      }
+      if (e.target.closest('.cancel-btn')) {
+        const id = e.target.closest('.cancel-btn').dataset.id;
+        if (confirm('Hủy đơn?')) { orders = orders.filter(o=>o.id!==id); await apiSaveOrders(orders); renderOrderLists(); }
+      }
+    });
+
+    document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', function() {
+      const p = this.dataset.page;
+      document.querySelectorAll('.page-section').forEach(pg => pg.classList.remove('active'));
+      document.getElementById(p==='profile'?'profilePage':p==='pending'?'pendingPage':'acceptedPage').classList.add('active');
+      document.getElementById('headerTitle').textContent = p==='profile'?'Thông tin':p==='pending'?'Đơn hàng hiện tại':'Đơn hàng nhận giao';
+      document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+      this.classList.add('active');
+    }));
+    renderOrderLists();
+  }
+
+  // ===== CUSTOMER =====
+  async function renderCustomerUI() {
+    const user = currentUser;
+    // Khách hàng luôn xem menu của store@example.com
+    const storeEmail = 'store@example.com';
+    let menu = await apiGetMenu(storeEmail);
+    if (menu.length !== 20) {
+      menu = JSON.parse(JSON.stringify(SAMPLE_MENU));
+      await apiSaveMenu(storeEmail, menu);
+    }
+
+    appContainer.innerHTML = `
+      <aside class="sidebar">
+        <div class="logo-area"><i class="fas fa-user"></i> Khách hàng</div>
+        <nav class="nav-menu">
+          <button class="nav-item active" data-page="menu"><i class="fas fa-utensils"></i> Menu</button>
+          <button class="nav-item" data-page="cart"><i class="fas fa-shopping-cart"></i> Giỏ hàng <span id="cartBadge" style="background:#B8860B;color:white;border-radius:50%;padding:2px 6px;font-size:11px;display:none;">0</span></button>
+          <button class="nav-item" data-page="orders"><i class="fas fa-history"></i> Đơn hàng của tôi</button>
+          <button class="nav-item" data-page="profile"><i class="fas fa-id-card"></i> Thông tin</button>
+        </nav>
+        <div class="sidebar-footer"><span>${user.name}</span><button class="btn btn-outline btn-sm" onclick="logout()">Đăng xuất</button></div>
+      </aside>
+      <div class="main-wrapper">
+        <header class="header"><span class="page-title" id="headerTitle">Menu món ăn</span></header>
+        <div class="content">
+          <div class="page-section active" id="menuPage"><div class="card"><div class="section-title">Danh sách món ăn (${menu.length} món)</div><div class="menu-grid" id="menuGrid"></div></div></div>
+          <div class="page-section" id="cartPage"><div class="card"><div class="section-title">Giỏ hàng</div><div id="cartItems"></div><div class="cart-summary"><span>Tổng:</span><span class="cart-total" id="cartTotal">0đ</span></div><button class="btn btn-primary" id="placeOrderBtn" style="width:100%;margin-top:12px;">Đặt hàng</button></div></div>
+          <div class="page-section" id="ordersPage"><div class="card"><div class="section-title">Lịch sử đơn hàng</div><div id="customerOrdersList"></div></div></div>
+          <div class="page-section" id="profilePage"><div class="card"><div class="section-title">Thông tin</div><table class="info-table"><tr><td>Họ tên</td><td>${user.name}</td></tr><tr><td>Email</td><td>${user.email}</td></tr><tr><td>Ngày sinh</td><td>${user.dob}</td></tr><tr><td>Địa chỉ</td><td>${user.address}</td></tr><tr><td>SĐT</td><td>${user.phone}</td></tr></table></div></div>
+        </div>
+      </div>`;
+    bindCustomerEvents(storeEmail);
+  }
+
+  let cart = [];
+  async function bindCustomerEvents(storeEmail) {
+    const user = currentUser;
+
+    function renderMenu() {
+      const currentMenu = JSON.parse(localStorage.getItem('menu_' + storeEmail) || '[]');
+      document.getElementById('menuGrid').innerHTML = currentMenu.map(food => `
+        <div class="menu-item-card">
+          <div class="food-name">${food.name}</div><div class="food-desc">${food.desc||''}</div>
+          <div class="food-price">${food.price.toLocaleString('vi-VN')}đ</div>
+          <button class="btn btn-primary btn-sm" onclick="addToCart(${food.id})">Thêm vào giỏ</button>
+        </div>`).join('');
+    }
+
+    window.addToCart = function(foodId) {
+      const currentMenu = JSON.parse(localStorage.getItem('menu_' + storeEmail) || '[]');
+      const food = currentMenu.find(f=>f.id===foodId);
+      if (!food) return;
+      const existing = cart.find(i=>i.food.id===foodId);
+      if (existing) existing.quantity++; else cart.push({food, quantity:1});
+      updateBadge();
+    };
+
+    window.removeFromCart = function(foodId) { cart = cart.filter(i=>i.food.id!==foodId); updateBadge(); renderCart(); };
+
+    function updateBadge() {
+      const total = cart.reduce((s,i)=>s+i.quantity,0);
+      const badge = document.getElementById('cartBadge');
+      badge.textContent = total;
+      badge.style.display = total > 0 ? 'inline' : 'none';
+    }
+
+    function renderCart() {
+      const container = document.getElementById('cartItems');
+      if (cart.length===0) { container.innerHTML='<div class="empty">Giỏ hàng trống</div>'; document.getElementById('cartTotal').textContent='0đ'; return; }
+      container.innerHTML = cart.map(i=>`
+        <div class="cart-item">
+          <div><strong>${i.food.name}</strong><br><small>${i.food.price.toLocaleString('vi-VN')}đ x ${i.quantity}</small></div>
+          <div>${(i.food.price*i.quantity).toLocaleString('vi-VN')}đ</div>
+          <button class="btn btn-danger btn-sm" onclick="removeFromCart(${i.food.id})"><i class="fas fa-trash"></i></button>
+        </div>`).join('');
+      document.getElementById('cartTotal').textContent = cart.reduce((s,i)=>s+i.food.price*i.quantity,0).toLocaleString('vi-VN')+'đ';
+    }
+
+    document.getElementById('placeOrderBtn').addEventListener('click', async () => {
+      if (cart.length===0) return alert('Giỏ hàng trống!');
+      const total = cart.reduce((s,i)=>s+i.food.price*i.quantity,0);
+      const newOrder = {
+        id: generateId(),
+        customerName: user.name,
+        customerEmail: user.email,
+        items: cart.map(i=>({name:i.food.name, price:i.food.price, quantity:i.quantity})),
+        total,
+        status: 'pending',
+        orderTime: new Date().toLocaleString('vi-VN'),
+        storeEmail
+      };
+      let orders = await apiGetOrders();
+      orders.push(newOrder);
+      await apiSaveOrders(orders);
+      cart = []; updateBadge(); renderCart();
+      alert('Đặt hàng thành công!');
+      document.querySelector('[data-page="orders"]').click();
+    });
+
+    async function renderCustomerOrders() {
+      const orders = await apiGetOrders();
+      const myOrders = orders.filter(o=>o.customerEmail===user.email).reverse();
+      document.getElementById('customerOrdersList').innerHTML = myOrders.length ? myOrders.map(o=>`
+        <div class="order-card">
+          <div class="order-header"><span class="order-id">#${o.id}</span><span class="status-badge ${o.status==='đang giao'?'shipping':''}">${o.status}</span></div>
+          <div>${o.items.map(i=>i.name+' x'+i.quantity).join(', ')}</div>
+          <div class="total">${o.total.toLocaleString('vi-VN')}đ</div><small>${o.orderTime}</small>
+        </div>`).join('') : '<div class="empty">Chưa có đơn hàng</div>';
+    }
+
+    document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', function() {
+      const p = this.dataset.page;
+      document.querySelectorAll('.page-section').forEach(pg=>pg.classList.remove('active'));
+      document.getElementById(p==='menu'?'menuPage':p==='cart'?'cartPage':p==='orders'?'ordersPage':'profilePage').classList.add('active');
+      document.getElementById('headerTitle').textContent = {menu:'Menu',cart:'Giỏ hàng',orders:'Đơn hàng',profile:'Thông tin'}[p];
+      document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+      this.classList.add('active');
+      if (p==='menu') renderMenu();
+      if (p==='cart') renderCart();
+      if (p==='orders') renderCustomerOrders();
+    }));
+
+    renderMenu();
+  }
+
+  // ===== STORE =====
+  async function renderStoreUI() {
+    const store = currentUser;
+    const storeEmail = store.email;
+    // GHI ĐÈ menu 20 món mỗi lần vào Store (để test)
+    let menu = JSON.parse(JSON.stringify(SAMPLE_MENU));
+    await apiSaveMenu(storeEmail, menu);
+
+    appContainer.innerHTML = `
+      <aside class="sidebar">
+        <div class="logo-area"><i class="fas fa-store"></i> Cửa hàng</div>
+        <nav class="nav-menu">
+          <button class="nav-item active" data-page="info"><i class="fas fa-info-circle"></i> Thông tin</button>
+          <button class="nav-item" data-page="revenue"><i class="fas fa-chart-line"></i> Doanh thu</button>
+          <button class="nav-item" data-page="menu"><i class="fas fa-utensils"></i> Menu</button>
+          <button class="nav-item" data-page="orders"><i class="fas fa-receipt"></i> Đơn hàng</button>
+        </nav>
+        <div class="sidebar-footer"><span>${store.storeName}</span><button class="btn btn-outline btn-sm" onclick="logout()">Đăng xuất</button></div>
+      </aside>
+      <div class="main-wrapper">
+        <header class="header"><span class="page-title" id="headerTitle">Thông tin cửa hàng</span></header>
+        <div class="content">
+          <div class="page-section active" id="infoPage"><div class="card"><div class="section-title">Thông tin</div><table class="info-table" id="storeInfoTable"></table></div><button class="btn btn-outline" id="editStoreBtn">Cập nhật</button></div>
+          <div class="page-section" id="revenuePage"><div class="card"><div class="section-title">Doanh thu</div><p style="color:#888;">Chưa xác định</p></div></div>
+          <div class="page-section" id="menuPage">
+            <div class="card">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div class="section-title" style="border:none;margin:0;">Menu (${menu.length} món)</div>
+                <button class="btn btn-outline" id="toggleEditMenu">Chỉnh sửa</button>
+              </div>
+              <div class="menu-grid" id="storeMenuGrid" style="margin-top:16px;"></div>
+              <button class="btn btn-primary" id="addFoodBtn" style="display:none;margin-top:16px;">Thêm món</button>
+            </div>
+          </div>
+          <div class="page-section" id="ordersPage">
+            <div class="card">
+              <div class="order-tabs"><div class="order-tab active" data-tab="pending">Đang chờ</div><div class="order-tab" data-tab="history">Lịch sử</div></div>
+              <div style="margin-bottom:12px;"><label>Ngày: </label><input type="date" id="historyDate" value="${new Date().toISOString().split('T')[0]}"></div>
+              <div id="orderContainer"></div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    bindStoreEvents(storeEmail);
+  }
+
+  async function bindStoreEvents(storeEmail) {
+    const store = currentUser;
+    let editMode = false;
+
+    document.getElementById('storeInfoTable').innerHTML = `<tr><td>Tên</td><td>${store.storeName}</td></tr><tr><td>Địa chỉ</td><td>${store.address}</td></tr><tr><td>SĐT</td><td>${store.phone}</td></tr><tr><td>Email</td><td>${store.email}</td></tr>`;
+
+    function renderMenuGrid() {
+      const currentMenu = JSON.parse(localStorage.getItem('menu_' + storeEmail) || '[]');
+      document.getElementById('storeMenuGrid').innerHTML = currentMenu.map(food => `
+        <div class="menu-item-card">
+          <div class="food-name">${food.name}</div><div class="food-desc">${food.desc||''}</div>
+          <div class="food-price">${food.price.toLocaleString('vi-VN')}đ</div>
+          ${editMode ? `<button class="btn btn-danger btn-sm" onclick="deleteFood(${food.id})">Xóa</button>` : ''}
+        </div>`).join('');
+      document.getElementById('addFoodBtn').style.display = editMode ? 'inline-flex' : 'none';
+    }
+
+    window.deleteFood = async function(id) {
+      let cm = JSON.parse(localStorage.getItem('menu_' + storeEmail) || '[]');
+      cm = cm.filter(f=>f.id!==id);
+      localStorage.setItem('menu_' + storeEmail, JSON.stringify(cm));
+      renderMenuGrid();
+    };
+
+    document.getElementById('toggleEditMenu').addEventListener('click', ()=>{
+      editMode=!editMode;
+      document.getElementById('toggleEditMenu').innerHTML = editMode?'<i class="fas fa-times"></i> Thoát':'<i class="fas fa-pen"></i> Chỉnh sửa';
+      renderMenuGrid();
+    });
+
+    document.getElementById('addFoodBtn').addEventListener('click', ()=>{
+      const name=prompt('Tên món:'), price=prompt('Giá:');
+      if (name&&price) {
+        let cm=JSON.parse(localStorage.getItem('menu_'+storeEmail)||'[]');
+        cm.push({id:cm.length?Math.max(...cm.map(f=>f.id))+1:1, name, price:parseInt(price), desc:''});
+        localStorage.setItem('menu_'+storeEmail, JSON.stringify(cm));
+        renderMenuGrid();
+        document.querySelector('.section-title').textContent = `Menu (${cm.length} món)`;
+      }
+    });
+
+    document.getElementById('editStoreBtn').addEventListener('click', ()=>{
+      const n=prompt('Tên:',store.storeName);
+      if (n) { store.storeName=n; apiUpdateUser('store',store); document.getElementById('storeInfoTable').innerHTML = `<tr><td>Tên</td><td>${store.storeName}</td></tr><tr><td>Địa chỉ</td><td>${store.address}</td></tr><tr><td>SĐT</td><td>${store.phone}</td></tr><tr><td>Email</td><td>${store.email}</td></tr>`; }
+    });
+
+    let orderTab='pending';
+    const historyDate = document.getElementById('historyDate');
+
+    async function renderStoreOrders() {
+      const orders = await apiGetOrders();
+      let f = orders.filter(o=>o.storeEmail===storeEmail);
+      if (orderTab==='pending') f=f.filter(o=>o.status==='pending');
+      else {
+        f=f.filter(o=>o.status!=='pending');
+        const d=historyDate.value.split('-').reverse().join('/');
+        f=f.filter(o=>o.orderTime.includes(d));
+      }
+      document.getElementById('orderContainer').innerHTML = f.length ? f.map(o=>`
+        <div class="order-card">
+          <div class="order-header"><span class="order-id">#${o.id}</span><span class="status-badge">${o.status}</span></div>
+          <div>${o.items.map(i=>i.name+' x'+i.quantity).join(', ')}</div>
+          <div class="total">${o.total.toLocaleString('vi-VN')}đ</div>
+          <small>${o.customerName} - ${o.orderTime}</small>
+        </div>`).join('') : '<div class="empty">Không có đơn</div>';
+    }
+
+    document.querySelectorAll('.order-tab').forEach(t=>t.addEventListener('click', function(){
+      orderTab=this.dataset.tab;
+      document.querySelectorAll('.order-tab').forEach(t=>t.classList.remove('active'));
+      this.classList.add('active');
+      renderStoreOrders();
+    }));
+
+    historyDate.addEventListener('change', renderStoreOrders);
+
+    document.querySelectorAll('.nav-item').forEach(item=>item.addEventListener('click', function(){
+      const p=this.dataset.page;
+      document.querySelectorAll('.page-section').forEach(pg=>pg.classList.remove('active'));
+      document.getElementById(p==='info'?'infoPage':p==='revenue'?'revenuePage':p==='menu'?'menuPage':'ordersPage').classList.add('active');
+      document.getElementById('headerTitle').textContent = {info:'Thông tin',revenue:'Doanh thu',menu:'Menu',orders:'Đơn hàng'}[p];
+      document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+      this.classList.add('active');
+      if (p==='menu') renderMenuGrid();
+      if (p==='orders') renderStoreOrders();
+    }));
+
+    renderMenuGrid();
+    renderStoreOrders();
+  }
+
+  window.logout = function() { localStorage.removeItem('currentUser'); window.location.href='login.html'; };
+
+  // Khởi động
+  if (role==='shipper') renderShipperUI();
+  else if (role==='customer') renderCustomerUI();
+  else if (role==='store') renderStoreUI();
+})();
+</script>
 </body>
 </html>
