@@ -29,3 +29,5 @@ config.properties
 # Database
 *.db
 *.sqlite
+
+GEMINI.md
