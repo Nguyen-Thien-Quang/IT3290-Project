@@ -1,4 +1,4 @@
-package controller.user;
+package main.java.controller.User.Login;
 
 import java.io.IOException;
 
@@ -11,8 +11,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-@WebServlet("/shipper/login")
-public class ShipperLoginServlet extends HttpServlet {
+@WebServlet("/api/customer/login")
+public class KhachHangLoginServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String email = req.getParameter("email");
@@ -30,9 +30,9 @@ public class ShipperLoginServlet extends HttpServlet {
         // then login
         TaiKhoan user = tkdao.login(email, password);
         if (user != null) {
-            // check Is the role of this account really Shipper
-            if (!"Shipper".equals(user.getVaiTro())) {
-                resp.getWriter().write("Access denied: This account is not a Shipper account!");
+            // check Is the role of this account really user/KhachHang
+            if (!"Khách hàng".equals(user.getVaiTro())) {
+                resp.getWriter().write("Access denied: This account is not a Customer account!");
                 return;
             }
             // use HttpSession from Servlet

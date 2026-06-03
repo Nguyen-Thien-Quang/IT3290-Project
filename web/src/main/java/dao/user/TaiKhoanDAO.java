@@ -101,7 +101,7 @@ public class TaiKhoanDAO {
         return -1;
     }
     // đăng kí tài khoản Khách hàng sử dụng stored procedure create_user
-    public int createUser(String email, String matKhau, String hoTen, String ngaysinh, String diachi, String sdt) {
+    public int createCustomerAccount(String email, String matKhau, String hoTen, String ngaysinh, String diachi, String sdt) {
         String query = "exec create_user ?, ?, ?, ?, ?, ?";
         try(Connection conn = new DBContext().getConnection();
             PreparedStatement ps = conn.prepareStatement(query)) {

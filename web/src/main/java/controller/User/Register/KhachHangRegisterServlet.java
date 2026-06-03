@@ -1,4 +1,4 @@
-package controller.user;
+package main.java.controller.User.Register;
 
 import java.io.IOException;
 
@@ -9,8 +9,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet("/user/register")
-public class UserRegisterServlet extends HttpServlet{
+@WebServlet("/api/customer/register")
+public class KhachHangRegisterServlet extends HttpServlet{
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
@@ -27,7 +27,7 @@ public class UserRegisterServlet extends HttpServlet{
             return;
         }
 
-        tkdao.createUser(email, password, name, birthday, address, SDT);
+        tkdao.createCustomerAccount(email, password, name, birthday, address, SDT);
         resp.sendRedirect("/login.html");
     }
 }
