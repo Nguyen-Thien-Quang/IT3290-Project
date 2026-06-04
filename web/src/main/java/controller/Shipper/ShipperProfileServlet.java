@@ -1,4 +1,4 @@
-package controller.Shipper;
+package main.java.controller.Shipper;
 
 import java.io.IOException;
 
