@@ -1,4 +1,4 @@
-package main.java.controller.GioHang;
+package controller.GioHang;
 
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;

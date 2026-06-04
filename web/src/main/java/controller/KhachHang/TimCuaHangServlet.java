@@ -1,4 +1,4 @@
-package main.java.controller.KhachHang;
+package controller.KhachHang;
 
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;

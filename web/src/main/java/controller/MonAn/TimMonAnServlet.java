@@ -1,4 +1,4 @@
-package main.java.controller.MonAn;
+package controller.MonAn;
 
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
