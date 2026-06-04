@@ -1,4 +1,4 @@
-package main.java.controller.Account.Register;
+package controller.Account.Register;
 
 import java.io.IOException;
 

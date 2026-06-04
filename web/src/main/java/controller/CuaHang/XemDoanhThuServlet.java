@@ -1,4 +1,4 @@
-package main.java.controller.CuaHang;
+package controller.CuaHang;
 
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
