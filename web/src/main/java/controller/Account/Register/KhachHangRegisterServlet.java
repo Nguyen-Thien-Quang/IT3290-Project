@@ -22,10 +22,6 @@ public class KhachHangRegisterServlet extends HttpServlet{
         String SDT = req.getParameter("SDT");
 
         TaiKhoanDAO tkdao = new TaiKhoanDAO();
-        if(tkdao.checkEmailExist(email)) {
-            resp.getWriter().write("email đã được sử dụng, sử dụng email khác hoặc đăng nhập!");
-            return;
-        }
 
         tkdao.createCustomerAccount(email, password, name, birthday, address, SDT);
         resp.sendRedirect("/login.html");
