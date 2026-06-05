@@ -20,7 +20,7 @@ public class DonHangDAO {
      * @param voucherId ID Voucher khách sử dụng (Truyền null nếu khách không dùng mã).
      * @return true nếu checkout thành công.
      */
-    public boolean checkout(int ghId, int khId, String phuongThuc, Integer voucherId) {
+    public boolean makeDonHang(int ghId, int khId, String phuongThuc, Integer voucherId) {
         // Cập nhật procedure để nhận 4 tham số
         String sql = "EXEC checkout_cart ?, ?, ?, ?";
         try (Connection conn = new DBContext().getConnection();

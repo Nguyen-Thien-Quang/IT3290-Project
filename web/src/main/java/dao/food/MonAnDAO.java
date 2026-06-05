@@ -12,6 +12,42 @@ import java.util.List;
 public class MonAnDAO {
 
     /**
+     * Lấy danh sách các món ăn nổi bật để hiển thị trên Trang chủ.
+     * Chỉ lấy các món có trạng thái 'con_ban' và giới hạn số lượng (ví dụ: 20 món)
+     * sắp xếp ngẫu nhiên để giao diện luôn mới mẻ.
+     * @return Danh sách đối tượng MonAn.
+     */
+    public List<MonAn> getMonAnTrangChu() {
+        List<MonAn> list = new ArrayList<>();
+
+        // Dùng TOP 20 để giới hạn dữ liệu, NEWID() để random thứ tự hiển thị
+        String sql = "SELECT TOP 20 ID_MONAN, ID_CUAHANG, ID_LOAI, TENMON, TRANGTHAI, GIA, IMG "
+                + "FROM MONAN "
+                + "WHERE TRANGTHAI = N'con_ban' "
+                + "ORDER BY NEWID()";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(new MonAn(
+                        rs.getInt("ID_MONAN"),
+                        rs.getInt("ID_CUAHANG"),
+                        rs.getInt("ID_LOAI"),
+                        rs.getNString("TENMON"),
+                        rs.getNString("TRANGTHAI"),
+                        rs.getDouble("GIA"),
+                        rs.getString("IMG")
+                ));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
      * Tìm kiếm món ăn theo tên (Hỗ trợ tìm kiếm gần đúng, không phân biệt hoa thường).
      * * @param keyword Từ khóa tên món ăn cần tìm (ví dụ: "bún", "phở").
      * @return Danh sách các món ăn khớp với từ khóa và đang được bày bán.

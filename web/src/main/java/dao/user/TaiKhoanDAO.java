@@ -52,6 +52,13 @@ public class TaiKhoanDAO {
      * Tạo tài khoản Khách hàng mới (Sử dụng EXEC create_user).
      */
     public boolean registerKhachHang(String email, String pass, String hoTen, Date ngaySinh, String diaChi, String sdt) {
+
+        // Gọi lại hàm kiểm tra xem email đã tồn tại hay chưa
+        if (this.checkEmailExist(email)) {
+            System.out.println("Đăng ký thất bại: Email " + email + " đã tồn tại trong hệ thống.");
+            return false;
+        }
+
         String sql = "EXEC create_user ?, ?, ?, ?, ?, ?";
         try (Connection conn = new DBContext().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -75,6 +82,13 @@ public class TaiKhoanDAO {
      * Tạo tài khoản Cửa hàng mới (Sử dụng EXEC create_shop_manager).
      */
     public boolean registerCuaHang(String email, String pass, String tenCuaHang, String diaChi, String sdt) {
+
+        // Gọi lại hàm kiểm tra xem email đã tồn tại hay chưa
+        if (this.checkEmailExist(email)) {
+            System.out.println("Đăng ký thất bại: Email " + email + " đã tồn tại trong hệ thống.");
+            return false;
+        }
+
         String sql = "EXEC create_shop_manager ?, ?, ?, ?, ?";
         try (Connection conn = new DBContext().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -97,6 +111,13 @@ public class TaiKhoanDAO {
      * Tạo tài khoản Shipper mới (Sử dụng EXEC sp_create_shipper).
      */
     public boolean registerShipper(String email, String pass, String hoTen, Date ngaySinh, String sdt) {
+
+        // Gọi lại hàm kiểm tra xem email đã tồn tại hay chưa
+        if (this.checkEmailExist(email)) {
+            System.out.println("Đăng ký thất bại: Email " + email + " đã tồn tại trong hệ thống.");
+            return false;
+        }
+
         String sql = "EXEC sp_create_shipper ?, ?, ?, ?, ?";
         try (Connection conn = new DBContext().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -114,24 +135,55 @@ public class TaiKhoanDAO {
             return false;
         }
     }
-    // đăng kí tài khoản Khách hàng sử dụng stored procedure create_user
-    public int createCustomerAccount(String email, String matKhau, String hoTen, String ngaysinh, String diachi, String sdt) {
-        String query = "exec create_user ?, ?, ?, ?, ?, ?";
-        try(Connection conn = new DBContext().getConnection();
-            PreparedStatement ps = conn.prepareStatement(query)) {
 
-            ps.setString(1, email);
-            ps.setString(2, matKhau);
-            ps.setString(3, hoTen);
-            ps.setString(4, ngaysinh);
-            ps.setString(5, diachi);
-            ps.setString(6, sdt);
+    /**
+     * Lấy trực tiếp chuỗi Email từ bảng TAIKHOAN thông qua ID_TAIKHOAN.
+     * Giải pháp này giúp lấy thông tin tài khoản mà không cần chỉnh sửa các lớp Model vai trò.
+     * * @param idTaiKhoan ID duy nhất của tài khoản cần tra cứu.
+     * @return Chuỗi email nếu tìm thấy, ngược lại trả về null.
+     */
+    public String getEmailByTaiKhoanId(int idTaiKhoan) {
+        String sql = "SELECT EMAIL FROM TAIKHOAN WHERE ID_TAIKHOAN = ?";
 
-            return ps.executeUpdate();
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        } catch(Exception e) {
+            ps.setInt(1, idTaiKhoan);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("EMAIL");
+                }
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        return 0;
+        return null;
+    }
+
+    /**
+     * Kiểm tra xem một Email đã được đăng ký trong hệ thống hay chưa.
+     * Dùng để chặn trùng lặp dữ liệu khi người dùng đăng ký tài khoản mới.
+     * * @param email Chuỗi email cần kiểm tra.
+     * @return true nếu email đã tồn tại trong bảng TAIKHOAN, ngược lại trả về false.
+     */
+    public boolean checkEmailExist(String email) {
+        String sql = "SELECT COUNT(*) FROM TAIKHOAN WHERE EMAIL = ?";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, email);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // Nếu số lượng đếm được > 0 nghĩa là email đã tồn tại
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
