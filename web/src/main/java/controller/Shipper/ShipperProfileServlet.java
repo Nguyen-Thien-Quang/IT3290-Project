@@ -31,7 +31,7 @@ public class ShipperProfileServlet extends HttpServlet {
         }
 
         ShipperDAO dao = new ShipperDAO();
-        Shipper shipperInfo = dao.getByAccountId(userAccount.getIdTaiKhoan());
+        Shipper shipperInfo = dao.getShipperProfileById(userAccount.getIdTaiKhoan());
 
         if (shipperInfo != null) {
             Gson gson = new Gson();
