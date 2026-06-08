@@ -54,7 +54,7 @@ public class KhachHangRegisterServlet extends HttpServlet {
         String password = jsonObject.has("password") && !jsonObject.get("password").isJsonNull() ? jsonObject.get("password").getAsString() : null;
         String name = jsonObject.has("name") && !jsonObject.get("name").isJsonNull() ? jsonObject.get("name").getAsString() : null;
         String birthdayStr = jsonObject.has("birthday") && !jsonObject.get("birthday").isJsonNull() ? jsonObject.get("birthday").getAsString() : null;
-        String address = jsonObject.has("addr") && !jsonObject.get("addr").isJsonNull() ? jsonObject.get("addr").getAsString() : null;
+        String address = jsonObject.has("address") && !jsonObject.get("address").isJsonNull() ? jsonObject.get("address").getAsString() : null;
         String SDT = jsonObject.has("SDT") && !jsonObject.get("SDT").isJsonNull() ? jsonObject.get("SDT").getAsString() : null;
 
         Date birthday = null;

@@ -27,3 +27,7 @@ PROJECT PROGRESS SUMMARY - June 3, 2026
 4. DAO Enhancements:
    - Verified and utilized `getByAccountId` across all user-related DAOs.
    - Ensured consistency in role-string matching ("Khách hàng", "Shipper", "Cửa hàng") between Java code and SQL Server schema constraints.
+
+5. Code Quality & Documentation (June 6, 2026):
+   - Added comprehensive JavaDoc and inline comments to KhachHangLoginServlet.java to improve maintainability.
+   - Conducted a thorough code review of KhachHangLoginServlet and KhachHangRegisterServlet, identifying potential improvements in date parsing and security error messaging.
