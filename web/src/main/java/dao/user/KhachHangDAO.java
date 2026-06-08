@@ -10,6 +10,38 @@ import java.sql.*;
 public class KhachHangDAO {
 
     /**
+     * Truy vấn thông tin Khách hàng dựa trên ID tài khoản.
+     * @param accountId ID của tài khoản liên kết (ID_TAIKHOAN).
+     * @return Đối tượng {@link KhachHang} hoặc null nếu không tìm thấy.
+     */
+    public KhachHang getByAccountId(int accountId) {
+        String sql = "SELECT ID_KHACHHANG, ID_TAIKHOAN, HOTEN, NGAYSINH, DIACHI, SDT "
+                + "FROM KHACHHANG WHERE ID_TAIKHOAN = ?";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, accountId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new KhachHang(
+                            rs.getInt("ID_KHACHHANG"),
+                            rs.getInt("ID_TAIKHOAN"),
+                            rs.getNString("HOTEN"),
+                            rs.getDate("NGAYSINH"),
+                            rs.getNString("DIACHI"),
+                            rs.getString("SDT")
+                    );
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
      * Truy vấn toàn bộ thông tin cá nhân của một khách hàng dựa trên ID.
      * Dùng để đổ dữ liệu lên trang quản lý thông tin cá nhân (Profile).
      * * @param khId ID duy nhất của khách hàng cần xem thông tin.

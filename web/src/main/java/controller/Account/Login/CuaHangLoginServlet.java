@@ -8,6 +8,7 @@ import java.util.Map;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import dao.user.CuaHangDAO;
 import dao.user.TaiKhoanDAO;
 import controller.Account.HashUtil;
 import model.user.TaiKhoan;
@@ -105,6 +106,14 @@ public class CuaHangLoginServlet extends HttpServlet {
             } else {
                 // Successful login: store user info in session
                 session.setAttribute("user", user);
+
+                // Session Enrichment: Fetch and store the shopId
+                CuaHangDAO cdao = new CuaHangDAO();
+                model.user.CuaHang c = cdao.getCuaHangByAccountId(user.getIdTaiKhoan());
+                if (c != null) {
+                    session.setAttribute("shopId", c.getIdCuaHang());
+                }
+
                 responseMap.put("success", true);
                 responseMap.put("message", "Login successful");
                 // Return basic user info (excluding sensitive data)

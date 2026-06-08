@@ -31,7 +31,7 @@ public class KhachHangProfileServlet extends HttpServlet {
         }
 
         KhachHangDAO dao = new KhachHangDAO();
-        KhachHang khInfo = dao.getProfileById(userAccount.getIdTaiKhoan());
+        KhachHang khInfo = dao.getByAccountId(userAccount.getIdTaiKhoan());
 
         if (khInfo != null) {
             Gson gson = new Gson();

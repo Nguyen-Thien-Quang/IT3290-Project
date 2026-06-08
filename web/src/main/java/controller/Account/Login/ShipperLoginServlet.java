@@ -8,6 +8,7 @@ import java.util.Map;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import dao.user.ShipperDAO;
 import dao.user.TaiKhoanDAO;
 import controller.Account.HashUtil;
 import model.user.TaiKhoan;
@@ -105,6 +106,14 @@ public class ShipperLoginServlet extends HttpServlet {
             } else {
                 // Successful login: store user info in session
                 session.setAttribute("user", user);
+
+                // Session Enrichment: Fetch and store the shipperId
+                ShipperDAO sdao = new ShipperDAO();
+                model.user.Shipper s = sdao.getShipperByAccountId(user.getIdTaiKhoan());
+                if (s != null) {
+                    session.setAttribute("shipperId", s.getIdShipper());
+                }
+
                 responseMap.put("success", true);
                 responseMap.put("message", "Login successful");
                 // Return basic user info (excluding sensitive data)

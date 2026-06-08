@@ -8,6 +8,7 @@ import java.util.Map;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import dao.user.KhachHangDAO;
 import dao.user.TaiKhoanDAO;
 import controller.Account.HashUtil;
 import model.user.TaiKhoan;
@@ -105,6 +106,14 @@ public class KhachHangLoginServlet extends HttpServlet {
             } else {
                 // Successful login: store user info in session
                 session.setAttribute("user", user);
+
+                // Session Enrichment: Fetch and store the customerId
+                KhachHangDAO kdao = new KhachHangDAO();
+                model.user.KhachHang k = kdao.getByAccountId(user.getIdTaiKhoan());
+                if (k != null) {
+                    session.setAttribute("customerId", k.getIdKhachHang());
+                }
+
                 responseMap.put("success", true);
                 responseMap.put("message", "Login successful");
                 // Return basic user info (excluding sensitive data)

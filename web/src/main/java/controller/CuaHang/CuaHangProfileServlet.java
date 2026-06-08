@@ -1,4 +1,4 @@
-package main.java.controller.CuaHang;
+package controller.CuaHang;
 
 import java.io.IOException;
 
@@ -34,7 +34,7 @@ public class CuaHangProfileServlet extends HttpServlet {
 
         // 3. Use the ID from the session model to get full CuaHang info
         CuaHangDAO dao = new CuaHangDAO();
-        CuaHang shopInfo = dao.getByAccountId(userAccount.getIdTaiKhoan());
+        CuaHang shopInfo = dao.getCuaHangByAccountId(userAccount.getIdTaiKhoan());
 
         if (shopInfo != null) {
             // 4. Return the full shop model as JSON
