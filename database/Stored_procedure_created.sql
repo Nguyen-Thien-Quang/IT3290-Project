@@ -1,3 +1,4 @@
+USE FoodProject
 GO
 
 /* =========================
@@ -13,6 +14,7 @@ CREATE PROCEDURE create_user
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
     BEGIN TRAN;
     INSERT INTO TAIKHOAN(MATKHAU, VAITRO, EMAIL)
     VALUES (@MatKhau, N'Khách hàng', @Email);

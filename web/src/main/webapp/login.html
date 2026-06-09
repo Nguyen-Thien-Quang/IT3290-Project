@@ -105,60 +105,92 @@
   function getUsers(role) { return JSON.parse(localStorage.getItem('users_' + role) || '[]'); }
   function saveUsers(role, users) { localStorage.setItem('users_' + role, JSON.stringify(users)); }
 
-  document.getElementById('registerForm').addEventListener('submit', function(e) {
+  document.getElementById('registerForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const errorEl = document.getElementById('registerError');
     const successEl = document.getElementById('registerSuccess');
     errorEl.style.display = 'none';
     successEl.style.display = 'none';
+    
     const email = document.getElementById('regEmail').value.trim();
     const password = document.getElementById('regPassword').value;
-    if (!email || !password) { errorEl.textContent = 'Email và mật khẩu là bắt buộc.'; errorEl.style.display = 'block'; return; }
+    
+    let payload = { email, password };
+    let endpoint = '';
 
-    let newUser = { email, password };
     if (role === 'customer') {
       const name = document.getElementById('regName').value.trim();
-      const dob = document.getElementById('regDob').value;
+      const birthday = document.getElementById('regDob').value;
       const address = document.getElementById('regAddress').value.trim();
-      const phone = document.getElementById('regPhone').value.trim();
-      if (!name || !dob || !address || !phone) { errorEl.textContent = 'Vui lòng điền đầy đủ 6 thông tin.'; errorEl.style.display = 'block'; return; }
-      newUser = { ...newUser, name, dob, address, phone, role: 'customer' };
+      const SDT = document.getElementById('regPhone').value.trim();
+      if (!name || !birthday || !address || !SDT) { errorEl.textContent = 'Vui lòng điền đầy đủ thông tin.'; errorEl.style.display = 'block'; return; }
+      payload = { ...payload, name, birthday, address, SDT };
+      endpoint = 'api/customer/register';
     } else if (role === 'shipper') {
       const name = document.getElementById('regName').value.trim();
-      const phone = document.getElementById('regPhone').value.trim();
-      const vehicle = document.getElementById('regVehicle').value.trim();
-      if (!name || !phone || !vehicle) { errorEl.textContent = 'Vui lòng điền đầy đủ thông tin.'; errorEl.style.display = 'block'; return; }
-      newUser = { ...newUser, name, phone, vehicle, role: 'shipper', avatar: "https://via.placeholder.com/80?text=Shipper", totalOrders: 0, area: "Hà Nội", joinDate: new Date().toLocaleDateString('vi-VN') };
+      const birthday = document.getElementById('regDob').value;
+      const SDT = document.getElementById('regPhone').value.trim();
+      if (!name || !birthday || !SDT) { errorEl.textContent = 'Vui lòng điền đầy đủ thông tin.'; errorEl.style.display = 'block'; return; }
+      payload = { ...payload, name, birthday, SDT };
+      endpoint = 'api/shipper/register';
     } else if (role === 'store') {
-      const storeName = document.getElementById('regStoreName').value.trim();
+      const shopName = document.getElementById('regStoreName').value.trim();
       const address = document.getElementById('regAddress').value.trim();
-      const phone = document.getElementById('regPhone').value.trim();
-      if (!storeName || !address || !phone) { errorEl.textContent = 'Vui lòng điền đầy đủ thông tin.'; errorEl.style.display = 'block'; return; }
-      newUser = { ...newUser, storeName, address, phone, role: 'store', description: '', logo: '' };
+      const SDT = document.getElementById('regPhone').value.trim();
+      if (!shopName || !address || !SDT) { errorEl.textContent = 'Vui lòng điền đầy đủ thông tin.'; errorEl.style.display = 'block'; return; }
+      payload = { ...payload, shopName, address, SDT };
+      endpoint = 'api/shop/register';
     }
 
-    let users = getUsers(role);
-    if (users.find(u => u.email === email)) { errorEl.textContent = 'Email đã tồn tại.'; errorEl.style.display = 'block'; return; }
-    users.push(newUser);
-    saveUsers(role, users);
-    successEl.textContent = 'Đăng ký thành công! Chuyển sang đăng nhập...';
-    successEl.style.display = 'block';
-    setTimeout(() => { switchTab('login'); document.getElementById('loginEmail').value = email; }, 1000);
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (result.success) {
+        successEl.textContent = 'Đăng ký thành công! Chuyển sang đăng nhập...';
+        successEl.style.display = 'block';
+        setTimeout(() => { switchTab('login'); document.getElementById('loginEmail').value = email; }, 1000);
+      } else {
+        errorEl.textContent = result.message || 'Đăng ký thất bại';
+        errorEl.style.display = 'block';
+      }
+    } catch (err) {
+      errorEl.textContent = 'Lỗi kết nối server: ' + err.message;
+      errorEl.style.display = 'block';
+    }
   });
 
-  document.getElementById('loginForm').addEventListener('submit', function(e) {
+  document.getElementById('loginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
     const errorEl = document.getElementById('loginError');
     errorEl.style.display = 'none';
-    const users = getUsers(role);
-    const user = users.find(u => u.email === email && u.password === password);
-    if (user) {
-      localStorage.setItem('currentUser', JSON.stringify({ ...user, role }));
-      window.location.href = 'user_profile.html';
-    } else {
-      errorEl.textContent = 'Email hoặc mật khẩu sai!';
+
+    let endpoint = '';
+    if (role === 'customer') endpoint = 'api/customer/login';
+    else if (role === 'shipper') endpoint = 'api/shipper/login';
+    else if (role === 'store') endpoint = 'api/shop/login';
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const result = await response.json();
+      if (result.success) {
+        localStorage.setItem('currentUser', JSON.stringify({ email: result.email, role: result.role, name: result.name || result.email }));
+        window.location.href = 'user_profile.html';
+      } else {
+        errorEl.textContent = result.message || 'Email hoặc mật khẩu sai!';
+        errorEl.style.display = 'block';
+      }
+    } catch (err) {
+      errorEl.textContent = 'Lỗi kết nối server: ' + err.message;
       errorEl.style.display = 'block';
     }
   });

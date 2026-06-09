@@ -74,23 +74,68 @@
 
 <script>
 (function() {
-  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-  if (!currentUser) { window.location.href = 'login.html'; return; }
-  const role = currentUser.role;
+  const currentUserData = JSON.parse(localStorage.getItem('currentUser'));
+  if (!currentUserData) { window.location.href = 'login.html'; return; }
+  let role = currentUserData.role;
+  let profile = null;
 
-  function generateId() { return 'DH' + Math.random().toString(36).substr(2, 6).toUpperCase(); }
+  async function fetchProfile() {
+    let endpoint = '';
+    if (role === 'Khách hàng' || role === 'customer') endpoint = 'api/customer/profile';
+    else if (role === 'Shipper' || role === 'shipper') endpoint = 'api/shipper/profile';
+    else if (role === 'Cửa hàng' || role === 'store') endpoint = 'api/shop/profile';
+    else return null;
 
-  // API mô phỏng
-  async function apiGetOrders() { return JSON.parse(localStorage.getItem('allOrders') || '[]'); }
-  async function apiSaveOrders(orders) { localStorage.setItem('allOrders', JSON.stringify(orders)); }
-  async function apiGetMenu(storeEmail) { return JSON.parse(localStorage.getItem('menu_' + storeEmail) || '[]'); }
-  async function apiSaveMenu(storeEmail, menu) { localStorage.setItem('menu_' + storeEmail, JSON.stringify(menu)); }
-  async function apiUpdateUser(role, user) {
-    const users = JSON.parse(localStorage.getItem('users_' + role) || '[]');
-    const idx = users.findIndex(u => u.email === user.email);
-    if (idx > -1) users[idx] = user;
-    localStorage.setItem('users_' + role, JSON.stringify(users));
-    localStorage.setItem('currentUser', JSON.stringify(user));
+    try {
+      const response = await fetch(endpoint);
+      if (response.ok) {
+        return await response.json();
+      } else if (response.status === 401) {
+        window.location.href = 'login.html';
+      }
+    } catch (err) {
+      console.error('Failed to fetch profile', err);
+    }
+    return null;
+  }
+
+  async function init() {
+    profile = await fetchProfile();
+    if (!profile) {
+      // Fallback to localStorage if API fails or is not yet implemented
+      profile = currentUserData;
+    } else {
+      // Standardize role name from backend
+      if (profile.idKhachHang) role = 'customer';
+      else if (profile.idShipper) role = 'shipper';
+      else if (profile.idCuaHang) role = 'store';
+    }
+
+    if (role === 'shipper') renderShipperUI();
+    else if (role === 'customer') renderCustomerUI();
+    else if (role === 'store') renderStoreUI();
+  }
+
+  // API real calls
+  async function apiGetOrders() {
+    try {
+      const response = await fetch('api/order/history');
+      const result = await response.json();
+      return result.success ? result.data : [];
+    } catch (err) {
+      console.error(err);
+      return [];
+    }
+  }
+
+  async function apiGetMenu(shopId) {
+    try {
+      const response = await fetch(`api/shop/foods?id=${shopId}`);
+      return await response.json();
+    } catch (err) {
+      console.error(err);
+      return [];
+    }
   }
 
   // Menu 20 món mẫu
@@ -123,7 +168,7 @@
 
   // ===== SHIPPER =====
   async function renderShipperUI() {
-    const user = currentUser;
+    const user = profile;
     appContainer.innerHTML = `
       <aside class="sidebar">
         <div class="logo-area"><i class="fas fa-utensils"></i> FoodShip</div>
@@ -132,12 +177,12 @@
           <button class="nav-item active" data-page="pending"><i class="fas fa-clipboard-list"></i> Đơn hàng hiện tại</button>
           <button class="nav-item" data-page="accepted"><i class="fas fa-truck"></i> Đơn hàng nhận giao</button>
         </nav>
-        <div class="sidebar-footer"><span>${user.name}</span><button class="btn btn-outline btn-sm" onclick="logout()">Đăng xuất</button></div>
+        <div class="sidebar-footer"><span>${user.hoTen || user.name}</span><button class="btn btn-outline btn-sm" onclick="logout()">Đăng xuất</button></div>
       </aside>
       <div class="main-wrapper">
         <header class="header"><span class="page-title" id="headerTitle">Đơn hàng hiện tại</span></header>
         <div class="content">
-          <div class="page-section" id="profilePage"><div class="card"><div class="section-title">Thông tin</div><table class="info-table"><tr><td>Tên</td><td>${user.name}</td></tr><tr><td>Email</td><td>${user.email}</td></tr><tr><td>SĐT</td><td>${user.phone}</td></tr><tr><td>Phương tiện</td><td>${user.vehicle||''}</td></tr><tr><td>Số đơn đã giao</td><td>${user.totalOrders||0}</td></tr></table></div></div>
+          <div class="page-section" id="profilePage"><div class="card"><div class="section-title">Thông tin</div><table class="info-table"><tr><td>Tên</td><td>${user.hoTen || user.name}</td></tr><tr><td>Email</td><td>${user.email}</td></tr><tr><td>SĐT</td><td>${user.sdt || user.phone}</td></tr><tr><td>Ngày sinh</td><td>${user.ngaySinh || ''}</td></tr></table></div></div>
           <div class="page-section active" id="pendingPage"><div class="orders-grid" id="pendingOrdersGrid"></div></div>
           <div class="page-section" id="acceptedPage"><div class="orders-grid" id="acceptedOrdersGrid"></div></div>
         </div>
@@ -146,39 +191,24 @@
   }
 
   async function bindShipperEvents() {
-    const user = currentUser;
     let orders = await apiGetOrders();
-    let shipper = { ...user };
 
     function renderOrderLists() {
-      const pending = orders.filter(o => o.status === 'pending');
-      const accepted = orders.filter(o => o.status === 'đang giao');
+      const pending = orders.filter(o => o.trangThai === 'Chờ xác nhận');
+      const accepted = orders.filter(o => o.trangThai === 'Đang giao');
       document.getElementById('pendingOrdersGrid').innerHTML = pending.length ? pending.map(o => createOrderCard(o,'pending')).join('') : '<div class="empty-message">Không có đơn chờ</div>';
       document.getElementById('acceptedOrdersGrid').innerHTML = accepted.length ? accepted.map(o => createOrderCard(o,'accepted')).join('') : '<div class="empty-message">Chưa có đơn đang giao</div>';
     }
 
     function createOrderCard(order, type) {
       return `<div class="order-card ${type==='accepted'?'accepted-highlight':''}">
-        <div class="order-header"><span class="order-id">#${order.id}</span><span class="status-badge ${order.status==='đang giao'?'shipping':''}">${order.status}</span></div>
-        <div>${order.items.map(i=>i.name+' x'+i.quantity).join(', ')}</div>
-        <div class="total">${order.total.toLocaleString('vi-VN')}đ</div>
+        <div class="order-header"><span class="order-id">#${order.idDonHang}</span><span class="status-badge ${order.trangThai==='Đang giao'?'shipping':''}">${order.trangThai}</span></div>
+        <div class="total">${order.tongTien.toLocaleString('vi-VN')}đ</div>
         <div class="btn-group">
-          ${type==='pending'?'<button class="btn btn-primary accept-btn" data-id="'+order.id+'">Nhận giao</button>':'<button class="btn btn-danger cancel-btn" data-id="'+order.id+'">Hủy</button>'}
+          ${type==='pending'?'<button class="btn btn-primary accept-btn" data-id="'+order.idDonHang+'">Nhận giao</button>':'<button class="btn btn-danger cancel-btn" data-id="'+order.idDonHang+'">Hủy</button>'}
         </div>
       </div>`;
     }
-
-    document.addEventListener('click', async e => {
-      if (e.target.closest('.accept-btn')) {
-        const id = e.target.closest('.accept-btn').dataset.id;
-        const order = orders.find(o=>o.id===id);
-        if (order) { order.status='đang giao'; await apiSaveOrders(orders); shipper.totalOrders=(shipper.totalOrders||0)+1; await apiUpdateUser('shipper',shipper); renderOrderLists(); }
-      }
-      if (e.target.closest('.cancel-btn')) {
-        const id = e.target.closest('.cancel-btn').dataset.id;
-        if (confirm('Hủy đơn?')) { orders = orders.filter(o=>o.id!==id); await apiSaveOrders(orders); renderOrderLists(); }
-      }
-    });
 
     document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', function() {
       const p = this.dataset.page;
@@ -193,14 +223,10 @@
 
   // ===== CUSTOMER =====
   async function renderCustomerUI() {
-    const user = currentUser;
-    // Khách hàng luôn xem menu của store@example.com
-    const storeEmail = 'store@example.com';
-    let menu = await apiGetMenu(storeEmail);
-    if (menu.length !== 20) {
-      menu = JSON.parse(JSON.stringify(SAMPLE_MENU));
-      await apiSaveMenu(storeEmail, menu);
-    }
+    const user = profile;
+    // For demo, we might need a default shopId to show menu
+    const shopId = 1; 
+    let menu = await apiGetMenu(shopId);
 
     appContainer.innerHTML = `
       <aside class="sidebar">
@@ -211,44 +237,41 @@
           <button class="nav-item" data-page="orders"><i class="fas fa-history"></i> Đơn hàng của tôi</button>
           <button class="nav-item" data-page="profile"><i class="fas fa-id-card"></i> Thông tin</button>
         </nav>
-        <div class="sidebar-footer"><span>${user.name}</span><button class="btn btn-outline btn-sm" onclick="logout()">Đăng xuất</button></div>
+        <div class="sidebar-footer"><span>${user.hoTen || user.name}</span><button class="btn btn-outline btn-sm" onclick="logout()">Đăng xuất</button></div>
       </aside>
       <div class="main-wrapper">
         <header class="header"><span class="page-title" id="headerTitle">Menu món ăn</span></header>
         <div class="content">
-          <div class="page-section active" id="menuPage"><div class="card"><div class="section-title">Danh sách món ăn (${menu.length} món)</div><div class="menu-grid" id="menuGrid"></div></div></div>
+          <div class="page-section active" id="menuPage"><div class="card"><div class="section-title">Danh sách món ăn</div><div class="menu-grid" id="menuGrid"></div></div></div>
           <div class="page-section" id="cartPage"><div class="card"><div class="section-title">Giỏ hàng</div><div id="cartItems"></div><div class="cart-summary"><span>Tổng:</span><span class="cart-total" id="cartTotal">0đ</span></div><button class="btn btn-primary" id="placeOrderBtn" style="width:100%;margin-top:12px;">Đặt hàng</button></div></div>
           <div class="page-section" id="ordersPage"><div class="card"><div class="section-title">Lịch sử đơn hàng</div><div id="customerOrdersList"></div></div></div>
-          <div class="page-section" id="profilePage"><div class="card"><div class="section-title">Thông tin</div><table class="info-table"><tr><td>Họ tên</td><td>${user.name}</td></tr><tr><td>Email</td><td>${user.email}</td></tr><tr><td>Ngày sinh</td><td>${user.dob}</td></tr><tr><td>Địa chỉ</td><td>${user.address}</td></tr><tr><td>SĐT</td><td>${user.phone}</td></tr></table></div></div>
+          <div class="page-section" id="profilePage"><div class="card"><div class="section-title">Thông tin</div><table class="info-table"><tr><td>Họ tên</td><td>${user.hoTen || user.name}</td></tr><tr><td>Email</td><td>${user.email}</td></tr><tr><td>Ngày sinh</td><td>${user.ngaySinh || ''}</td></tr><tr><td>Địa chỉ</td><td>${user.diaChi || ''}</td></tr><tr><td>SĐT</td><td>${user.sdt || ''}</td></tr></table></div></div>
         </div>
       </div>`;
-    bindCustomerEvents(storeEmail);
+    bindCustomerEvents(shopId, menu);
   }
 
   let cart = [];
-  async function bindCustomerEvents(storeEmail) {
-    const user = currentUser;
-
-    function renderMenu() {
-      const currentMenu = JSON.parse(localStorage.getItem('menu_' + storeEmail) || '[]');
-      document.getElementById('menuGrid').innerHTML = currentMenu.map(food => `
+  async function bindCustomerEvents(shopId, initialMenu) {
+    function renderMenu(menuList) {
+      document.getElementById('menuGrid').innerHTML = menuList.map(food => `
         <div class="menu-item-card">
-          <div class="food-name">${food.name}</div><div class="food-desc">${food.desc||''}</div>
-          <div class="food-price">${food.price.toLocaleString('vi-VN')}đ</div>
-          <button class="btn btn-primary btn-sm" onclick="addToCart(${food.id})">Thêm vào giỏ</button>
+          <div class="food-name">${food.tenMon}</div>
+          <div class="food-price">${food.gia.toLocaleString('vi-VN')}đ</div>
+          <button class="btn btn-primary btn-sm" onclick="addToCart(${food.idMonAn})">Thêm vào giỏ</button>
         </div>`).join('');
     }
 
-    window.addToCart = function(foodId) {
-      const currentMenu = JSON.parse(localStorage.getItem('menu_' + storeEmail) || '[]');
-      const food = currentMenu.find(f=>f.id===foodId);
+    window.addToCart = async function(foodId) {
+      const menu = await apiGetMenu(shopId);
+      const food = menu.find(f=>f.idMonAn===foodId);
       if (!food) return;
-      const existing = cart.find(i=>i.food.id===foodId);
+      const existing = cart.find(i=>i.food.idMonAn===foodId);
       if (existing) existing.quantity++; else cart.push({food, quantity:1});
       updateBadge();
     };
 
-    window.removeFromCart = function(foodId) { cart = cart.filter(i=>i.food.id!==foodId); updateBadge(); renderCart(); };
+    window.removeFromCart = function(foodId) { cart = cart.filter(i=>i.food.idMonAn!==foodId); updateBadge(); renderCart(); };
 
     function updateBadge() {
       const total = cart.reduce((s,i)=>s+i.quantity,0);
@@ -262,67 +285,48 @@
       if (cart.length===0) { container.innerHTML='<div class="empty">Giỏ hàng trống</div>'; document.getElementById('cartTotal').textContent='0đ'; return; }
       container.innerHTML = cart.map(i=>`
         <div class="cart-item">
-          <div><strong>${i.food.name}</strong><br><small>${i.food.price.toLocaleString('vi-VN')}đ x ${i.quantity}</small></div>
-          <div>${(i.food.price*i.quantity).toLocaleString('vi-VN')}đ</div>
-          <button class="btn btn-danger btn-sm" onclick="removeFromCart(${i.food.id})"><i class="fas fa-trash"></i></button>
+          <div><strong>${i.food.tenMon}</strong><br><small>${i.food.gia.toLocaleString('vi-VN')}đ x ${i.quantity}</small></div>
+          <div>${(i.food.gia*i.quantity).toLocaleString('vi-VN')}đ</div>
+          <button class="btn btn-danger btn-sm" onclick="removeFromCart(${i.food.idMonAn})"><i class="fas fa-trash"></i></button>
         </div>`).join('');
-      document.getElementById('cartTotal').textContent = cart.reduce((s,i)=>s+i.food.price*i.quantity,0).toLocaleString('vi-VN')+'đ';
+      document.getElementById('cartTotal').textContent = cart.reduce((s,i)=>s+i.food.gia*i.quantity,0).toLocaleString('vi-VN')+'đ';
     }
 
     document.getElementById('placeOrderBtn').addEventListener('click', async () => {
       if (cart.length===0) return alert('Giỏ hàng trống!');
-      const total = cart.reduce((s,i)=>s+i.food.price*i.quantity,0);
-      const newOrder = {
-        id: generateId(),
-        customerName: user.name,
-        customerEmail: user.email,
-        items: cart.map(i=>({name:i.food.name, price:i.food.price, quantity:i.quantity})),
-        total,
-        status: 'pending',
-        orderTime: new Date().toLocaleString('vi-VN'),
-        storeEmail
-      };
-      let orders = await apiGetOrders();
-      orders.push(newOrder);
-      await apiSaveOrders(orders);
-      cart = []; updateBadge(); renderCart();
-      alert('Đặt hàng thành công!');
-      document.querySelector('[data-page="orders"]').click();
+      // TODO: Connect to api/cart order action
+      alert('Chức năng đặt hàng đang được kết nối với backend...');
     });
 
     async function renderCustomerOrders() {
       const orders = await apiGetOrders();
-      const myOrders = orders.filter(o=>o.customerEmail===user.email).reverse();
-      document.getElementById('customerOrdersList').innerHTML = myOrders.length ? myOrders.map(o=>`
+      document.getElementById('customerOrdersList').innerHTML = orders.length ? orders.map(o=>`
         <div class="order-card">
-          <div class="order-header"><span class="order-id">#${o.id}</span><span class="status-badge ${o.status==='đang giao'?'shipping':''}">${o.status}</span></div>
-          <div>${o.items.map(i=>i.name+' x'+i.quantity).join(', ')}</div>
-          <div class="total">${o.total.toLocaleString('vi-VN')}đ</div><small>${o.orderTime}</small>
+          <div class="order-header"><span class="order-id">#${o.idDonHang}</span><span class="status-badge ${o.trangThai==='Đang giao'?'shipping':''}">${o.trangThai}</span></div>
+          <div class="total">${o.tongTien.toLocaleString('vi-VN')}đ</div><small>${o.thoigianDat}</small>
         </div>`).join('') : '<div class="empty">Chưa có đơn hàng</div>';
     }
 
-    document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', function() {
+    document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', async function() {
       const p = this.dataset.page;
       document.querySelectorAll('.page-section').forEach(pg=>pg.classList.remove('active'));
       document.getElementById(p==='menu'?'menuPage':p==='cart'?'cartPage':p==='orders'?'ordersPage':'profilePage').classList.add('active');
       document.getElementById('headerTitle').textContent = {menu:'Menu',cart:'Giỏ hàng',orders:'Đơn hàng',profile:'Thông tin'}[p];
       document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
       this.classList.add('active');
-      if (p==='menu') renderMenu();
+      if (p==='menu') renderMenu(await apiGetMenu(shopId));
       if (p==='cart') renderCart();
       if (p==='orders') renderCustomerOrders();
     }));
 
-    renderMenu();
+    renderMenu(initialMenu);
   }
 
   // ===== STORE =====
   async function renderStoreUI() {
-    const store = currentUser;
-    const storeEmail = store.email;
-    // GHI ĐÈ menu 20 món mỗi lần vào Store (để test)
-    let menu = JSON.parse(JSON.stringify(SAMPLE_MENU));
-    await apiSaveMenu(storeEmail, menu);
+    const store = profile;
+    const shopId = store.idCuaHang;
+    let menu = await apiGetMenu(shopId);
 
     appContainer.innerHTML = `
       <aside class="sidebar">
@@ -333,112 +337,55 @@
           <button class="nav-item" data-page="menu"><i class="fas fa-utensils"></i> Menu</button>
           <button class="nav-item" data-page="orders"><i class="fas fa-receipt"></i> Đơn hàng</button>
         </nav>
-        <div class="sidebar-footer"><span>${store.storeName}</span><button class="btn btn-outline btn-sm" onclick="logout()">Đăng xuất</button></div>
+        <div class="sidebar-footer"><span>${store.tenCuaHang}</span><button class="btn btn-outline btn-sm" onclick="logout()">Đăng xuất</button></div>
       </aside>
       <div class="main-wrapper">
         <header class="header"><span class="page-title" id="headerTitle">Thông tin cửa hàng</span></header>
         <div class="content">
-          <div class="page-section active" id="infoPage"><div class="card"><div class="section-title">Thông tin</div><table class="info-table" id="storeInfoTable"></table></div><button class="btn btn-outline" id="editStoreBtn">Cập nhật</button></div>
-          <div class="page-section" id="revenuePage"><div class="card"><div class="section-title">Doanh thu</div><p style="color:#888;">Chưa xác định</p></div></div>
+          <div class="page-section active" id="infoPage"><div class="card"><div class="section-title">Thông tin</div><table class="info-table" id="storeInfoTable"></table></div></div>
+          <div class="page-section" id="revenuePage"><div class="card"><div class="section-title">Doanh thu</div><p style="color:#888;">Kết nối với api/shop/sales...</p></div></div>
           <div class="page-section" id="menuPage">
             <div class="card">
               <div style="display:flex;justify-content:space-between;align-items:center;">
-                <div class="section-title" style="border:none;margin:0;">Menu (${menu.length} món)</div>
-                <button class="btn btn-outline" id="toggleEditMenu">Chỉnh sửa</button>
+                <div class="section-title" style="border:none;margin:0;">Menu</div>
               </div>
               <div class="menu-grid" id="storeMenuGrid" style="margin-top:16px;"></div>
-              <button class="btn btn-primary" id="addFoodBtn" style="display:none;margin-top:16px;">Thêm món</button>
             </div>
           </div>
           <div class="page-section" id="ordersPage">
             <div class="card">
-              <div class="order-tabs"><div class="order-tab active" data-tab="pending">Đang chờ</div><div class="order-tab" data-tab="history">Lịch sử</div></div>
-              <div style="margin-bottom:12px;"><label>Ngày: </label><input type="date" id="historyDate" value="${new Date().toISOString().split('T')[0]}"></div>
               <div id="orderContainer"></div>
             </div>
           </div>
         </div>
       </div>`;
-    bindStoreEvents(storeEmail);
+    bindStoreEvents(shopId);
   }
 
-  async function bindStoreEvents(storeEmail) {
-    const store = currentUser;
-    let editMode = false;
+  async function bindStoreEvents(shopId) {
+    const store = profile;
+    document.getElementById('storeInfoTable').innerHTML = `<tr><td>Tên</td><td>${store.tenCuaHang}</td></tr><tr><td>Địa chỉ</td><td>${store.diaChi}</td></tr><tr><td>SĐT</td><td>${store.sdt}</td></tr><tr><td>Doanh thu</td><td>${store.doanhThu.toLocaleString('vi-VN')}đ</td></tr>`;
 
-    document.getElementById('storeInfoTable').innerHTML = `<tr><td>Tên</td><td>${store.storeName}</td></tr><tr><td>Địa chỉ</td><td>${store.address}</td></tr><tr><td>SĐT</td><td>${store.phone}</td></tr><tr><td>Email</td><td>${store.email}</td></tr>`;
-
-    function renderMenuGrid() {
-      const currentMenu = JSON.parse(localStorage.getItem('menu_' + storeEmail) || '[]');
+    async function renderMenuGrid() {
+      const currentMenu = await apiGetMenu(shopId);
       document.getElementById('storeMenuGrid').innerHTML = currentMenu.map(food => `
         <div class="menu-item-card">
-          <div class="food-name">${food.name}</div><div class="food-desc">${food.desc||''}</div>
-          <div class="food-price">${food.price.toLocaleString('vi-VN')}đ</div>
-          ${editMode ? `<button class="btn btn-danger btn-sm" onclick="deleteFood(${food.id})">Xóa</button>` : ''}
+          <div class="food-name">${food.tenMon}</div>
+          <div class="food-price">${food.gia.toLocaleString('vi-VN')}đ</div>
         </div>`).join('');
-      document.getElementById('addFoodBtn').style.display = editMode ? 'inline-flex' : 'none';
     }
-
-    window.deleteFood = async function(id) {
-      let cm = JSON.parse(localStorage.getItem('menu_' + storeEmail) || '[]');
-      cm = cm.filter(f=>f.id!==id);
-      localStorage.setItem('menu_' + storeEmail, JSON.stringify(cm));
-      renderMenuGrid();
-    };
-
-    document.getElementById('toggleEditMenu').addEventListener('click', ()=>{
-      editMode=!editMode;
-      document.getElementById('toggleEditMenu').innerHTML = editMode?'<i class="fas fa-times"></i> Thoát':'<i class="fas fa-pen"></i> Chỉnh sửa';
-      renderMenuGrid();
-    });
-
-    document.getElementById('addFoodBtn').addEventListener('click', ()=>{
-      const name=prompt('Tên món:'), price=prompt('Giá:');
-      if (name&&price) {
-        let cm=JSON.parse(localStorage.getItem('menu_'+storeEmail)||'[]');
-        cm.push({id:cm.length?Math.max(...cm.map(f=>f.id))+1:1, name, price:parseInt(price), desc:''});
-        localStorage.setItem('menu_'+storeEmail, JSON.stringify(cm));
-        renderMenuGrid();
-        document.querySelector('.section-title').textContent = `Menu (${cm.length} món)`;
-      }
-    });
-
-    document.getElementById('editStoreBtn').addEventListener('click', ()=>{
-      const n=prompt('Tên:',store.storeName);
-      if (n) { store.storeName=n; apiUpdateUser('store',store); document.getElementById('storeInfoTable').innerHTML = `<tr><td>Tên</td><td>${store.storeName}</td></tr><tr><td>Địa chỉ</td><td>${store.address}</td></tr><tr><td>SĐT</td><td>${store.phone}</td></tr><tr><td>Email</td><td>${store.email}</td></tr>`; }
-    });
-
-    let orderTab='pending';
-    const historyDate = document.getElementById('historyDate');
 
     async function renderStoreOrders() {
       const orders = await apiGetOrders();
-      let f = orders.filter(o=>o.storeEmail===storeEmail);
-      if (orderTab==='pending') f=f.filter(o=>o.status==='pending');
-      else {
-        f=f.filter(o=>o.status!=='pending');
-        const d=historyDate.value.split('-').reverse().join('/');
-        f=f.filter(o=>o.orderTime.includes(d));
-      }
-      document.getElementById('orderContainer').innerHTML = f.length ? f.map(o=>`
+      document.getElementById('orderContainer').innerHTML = orders.length ? orders.map(o=>`
         <div class="order-card">
-          <div class="order-header"><span class="order-id">#${o.id}</span><span class="status-badge">${o.status}</span></div>
-          <div>${o.items.map(i=>i.name+' x'+i.quantity).join(', ')}</div>
-          <div class="total">${o.total.toLocaleString('vi-VN')}đ</div>
-          <small>${o.customerName} - ${o.orderTime}</small>
+          <div class="order-header"><span class="order-id">#${o.idDonHang}</span><span class="status-badge">${o.trangThai}</span></div>
+          <div class="total">${o.tongTien.toLocaleString('vi-VN')}đ</div>
+          <small>${o.thoigianDat}</small>
         </div>`).join('') : '<div class="empty">Không có đơn</div>';
     }
 
-    document.querySelectorAll('.order-tab').forEach(t=>t.addEventListener('click', function(){
-      orderTab=this.dataset.tab;
-      document.querySelectorAll('.order-tab').forEach(t=>t.classList.remove('active'));
-      this.classList.add('active');
-      renderStoreOrders();
-    }));
-
-    historyDate.addEventListener('change', renderStoreOrders);
-
-    document.querySelectorAll('.nav-item').forEach(item=>item.addEventListener('click', function(){
+    document.querySelectorAll('.nav-item').forEach(item=>item.addEventListener('click', async function(){
       const p=this.dataset.page;
       document.querySelectorAll('.page-section').forEach(pg=>pg.classList.remove('active'));
       document.getElementById(p==='info'?'infoPage':p==='revenue'?'revenuePage':p==='menu'?'menuPage':'ordersPage').classList.add('active');
@@ -455,10 +402,7 @@
 
   window.logout = function() { localStorage.removeItem('currentUser'); window.location.href='login.html'; };
 
-  // Khởi động
-  if (role==='shipper') renderShipperUI();
-  else if (role==='customer') renderCustomerUI();
-  else if (role==='store') renderStoreUI();
+  init();
 })();
 </script>
 </body>
