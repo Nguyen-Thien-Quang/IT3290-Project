@@ -13,7 +13,7 @@ public class MonAnDAO {
 
     /**
      * Lấy danh sách các món ăn nổi bật để hiển thị trên Trang chủ.
-     * Chỉ lấy các món có trạng thái 'con_ban' và giới hạn số lượng (ví dụ: 20 món)
+     * Chỉ lấy các món có trạng thái 'Còn hàng' và giới hạn số lượng (ví dụ: 20 món)
      * sắp xếp ngẫu nhiên để giao diện luôn mới mẻ.
      * @return Danh sách đối tượng MonAn.
      */
@@ -23,7 +23,7 @@ public class MonAnDAO {
         // Dùng TOP 20 để giới hạn dữ liệu, NEWID() để random thứ tự hiển thị
         String sql = "SELECT TOP 20 ID_MONAN, ID_CUAHANG, ID_LOAI, TENMON, TRANGTHAI, GIA, IMG "
                 + "FROM MONAN "
-                + "WHERE TRANGTHAI = N'con_ban' "
+                + "WHERE TRANGTHAI = N'Còn hàng' "
                 + "ORDER BY NEWID()";
 
         try (Connection conn = new DBContext().getConnection();
@@ -56,7 +56,7 @@ public class MonAnDAO {
         List<MonAn> list = new ArrayList<>();
         // Lấy đầy đủ các cột bao gồm cả cột IMG
         String sql = "SELECT ID_MONAN, ID_CUAHANG, ID_LOAI, TENMON, TRANGTHAI, GIA, IMG "
-                + "FROM MONAN WHERE TENMON LIKE ? AND TRANGTHAI = 'con_ban'";
+                + "FROM MONAN WHERE TENMON LIKE ? AND TRANGTHAI = N'Còn hàng'";
 
         try (Connection conn = new DBContext().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -119,14 +119,14 @@ public class MonAnDAO {
 
     /**
      * Lọc danh sách các món ăn thuộc một danh mục (loại món ăn) cụ thể.
-     * Chỉ hiển thị các món ăn đang ở trạng thái 'con_ban'.
+     * Chỉ hiển thị các món ăn đang ở trạng thái 'Còn hàng'.
      * * @param idLoai Mã định danh duy nhất của loại món ăn cần lọc (ví dụ: ID của Đồ uống, Món chính).
      * @return Danh sách các đối tượng {@link MonAn} thuộc loại món ăn đó.
      */
     public List<MonAn> getByCategory(int idLoai) {
         List<MonAn> list = new ArrayList<>();
         String sql = "SELECT ID_MONAN, ID_CUAHANG, ID_LOAI, TENMON, TRANGTHAI, GIA, IMG "
-                + "FROM MONAN WHERE ID_LOAI = ? AND TRANGTHAI = 'con_ban'";
+                + "FROM MONAN WHERE ID_LOAI = ? AND TRANGTHAI = N'Còn hàng'";
 
         try (Connection conn = new DBContext().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -163,7 +163,7 @@ public class MonAnDAO {
         List<MonAn> list = new ArrayList<>();
         // Sử dụng toán tử BETWEEN ... AND ... để tối ưu hóa hiệu năng lọc khoảng giá trong SQL
         String sql = "SELECT ID_MONAN, ID_CUAHANG, ID_LOAI, TENMON, TRANGTHAI, GIA, IMG "
-                + "FROM MONAN WHERE (GIA BETWEEN ? AND ?) AND TRANGTHAI = 'con_ban'";
+                + "FROM MONAN WHERE (GIA BETWEEN ? AND ?) AND TRANGTHAI = N'Còn hàng'";
 
         try (Connection conn = new DBContext().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -201,7 +201,7 @@ public class MonAnDAO {
     public List<MonAn> getByCategoryAndPrice(int idLoai, double minPrice, double maxPrice) {
         List<MonAn> list = new ArrayList<>();
         String sql = "SELECT ID_MONAN, ID_CUAHANG, ID_LOAI, TENMON, TRANGTHAI, GIA, IMG "
-                + "FROM MONAN WHERE ID_LOAI = ? AND (GIA BETWEEN ? AND ?) AND TRANGTHAI = 'con_ban'";
+                + "FROM MONAN WHERE ID_LOAI = ? AND (GIA BETWEEN ? AND ?) AND TRANGTHAI = N'Còn hàng'";
 
         try (Connection conn = new DBContext().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -245,7 +245,7 @@ public class MonAnDAO {
         // Sử dụng StringBuilder để nối chuỗi SQL linh hoạt
         StringBuilder sql = new StringBuilder(
                 "SELECT ID_MONAN, ID_CUAHANG, ID_LOAI, TENMON, TRANGTHAI, GIA, IMG " +
-                        "FROM MONAN WHERE TRANGTHAI = 'con_ban'"
+                        "FROM MONAN WHERE TRANGTHAI = N'Còn hàng'"
         );
 
         // Danh sách lưu trữ các giá trị tham số dấu hỏi (?) sẽ truyền vào PreparedStatement
@@ -306,7 +306,7 @@ public class MonAnDAO {
 
     /**
      * Cửa hàng thêm món ăn mới vào thực đơn.
-     * Mặc định khi mới thêm, trạng thái của món ăn sẽ là 'con_ban'.
+     * Mặc định khi mới thêm, trạng thái của món ăn sẽ là 'Còn hàng'.
      * * @param storeId ID của cửa hàng thực hiện thêm món (Bắt buộc để gắn đúng chủ).
      * @param idLoai ID danh mục loại món ăn (Ví dụ: Đồ uống, Món chính).
      * @param tenMon Tên món ăn (Hỗ trợ tiếng Việt có dấu).
@@ -316,7 +316,7 @@ public class MonAnDAO {
      */
     public boolean insertMonAn(int storeId, int idLoai, String tenMon, double gia, String img) {
         String sql = "INSERT INTO MONAN (ID_CUAHANG, ID_LOAI, TENMON, TRANGTHAI, GIA, IMG) "
-                + "VALUES (?, ?, ?, N'con_ban', ?, ?)";
+                + "VALUES (?, ?, ?, N'Còn hàng', ?, ?)";
 
         try (Connection conn = new DBContext().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -340,7 +340,7 @@ public class MonAnDAO {
      * Có đi kèm điều kiện kiểm tra ID_CUAHANG để đảm bảo quán nào chỉ được sửa món của quán đó.
      * * @param monAnId ID của món ăn cần thay đổi trạng thái.
      * @param storeId ID của cửa hàng (Dùng để xác thực quyền sở hữu món ăn).
-     * @param trangThai Trạng thái mới (ví dụ: N'con_ban', N'het_hang', N'ngung_kinh_doanh').
+     * @param trangThai Trạng thái mới (ví dụ: N'Còn hàng', N'het_hang', N'ngung_kinh_doanh').
      * @return true nếu cập nhật thành công (Trường hợp sai storeId sẽ trả về false).
      */
     public boolean updateTrangThaiMonAn(int monAnId, int storeId, String trangThai) {
