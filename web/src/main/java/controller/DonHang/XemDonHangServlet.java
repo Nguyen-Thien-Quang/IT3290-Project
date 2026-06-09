@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServlet;
 
 @WebServlet("/api/order")
 public class XemDonHangServlet extends HttpServlet {
-    // GET: trả về danh sách các đơn hàng hiện tại trong trạng thái chờ giao
-    // GET: trả về danh sách các đơn hàng đã được nhận bởi shipper
-    // sử dụng query param: /api/order?status="đang chờ giao"
+    // GET /api/order?status=pending : lấy danh sách đơn hàng đang chờ giao
+    // GET /api/order?status=shipping : lấy danh sách đơn hàng đang được giao
 }
