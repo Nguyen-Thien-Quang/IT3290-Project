@@ -7,6 +7,7 @@ import java.util.Map;
 import com.google.gson.Gson;
 import dao.report.ThongKeDAO;
 import model.user.TaiKhoan;
+import model.user.roles;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -22,14 +23,6 @@ import jakarta.servlet.http.HttpSession;
 public class MonAnBanChayNhatServlet extends HttpServlet {
     private final Gson gson = new Gson();
 
-    /**
-     * Handles GET requests to retrieve best-selling food items.
-     * 
-     * @param req  the HttpServletRequest containing the parameter 'k'
-     * @param resp the HttpServletResponse used to return the JSON result
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("application/json");
@@ -40,7 +33,7 @@ public class MonAnBanChayNhatServlet extends HttpServlet {
         Integer shopId = (Integer) session.getAttribute("shopId");
 
         // 1. Authorization Check: Must be logged in as a Shop Manager
-        if (user == null || shopId == null || !"Cửa hàng".equals(user.getVaiTro())) {
+        if (user == null || shopId == null || !roles.SHOP.equals(user.getVaiTro())) {
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             resp.getWriter().write("{\"success\": false, \"message\": \"Unauthorized: Please log in as a Shop Manager.\"}");
             return;

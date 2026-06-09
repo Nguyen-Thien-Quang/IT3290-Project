@@ -117,6 +117,8 @@ public class KhachHangRegisterServlet extends HttpServlet {
         if (success) {
             responseMap.put("success", true);
             responseMap.put("message", "Registration successful");
+            // Include redirect URL for the frontend to navigate to the login page
+            responseMap.put("redirect", req.getContextPath() + "/login.html");
         } else {
             // Failure usually indicates the email already exists or a database error
             resp.setStatus(HttpServletResponse.SC_CONFLICT);
