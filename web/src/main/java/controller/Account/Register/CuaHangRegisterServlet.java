@@ -27,7 +27,7 @@ import jakarta.servlet.http.HttpServletResponse;
  * {
  *   "email": "shop@example.com",
  *   "password": "yourpassword",
- *   "shopName": "My Awesome Shop",
+ *   "name": "My Awesome Shop",
  *   "address": "456 Avenue, City",
  *   "SDT": "0987654321"
  * }
@@ -78,7 +78,7 @@ public class CuaHangRegisterServlet extends HttpServlet {
         // Extract registration details from the JSON object
         String email = jsonObject.has("email") && !jsonObject.get("email").isJsonNull() ? jsonObject.get("email").getAsString() : null;
         String password = jsonObject.has("password") && !jsonObject.get("password").isJsonNull() ? jsonObject.get("password").getAsString() : null;
-        String shopName = jsonObject.has("shopName") && !jsonObject.get("shopName").isJsonNull() ? jsonObject.get("shopName").getAsString() : null;
+        String name = jsonObject.has("name") && !jsonObject.get("name").isJsonNull() ? jsonObject.get("name").getAsString() : null;
         String address = jsonObject.has("address") && !jsonObject.get("address").isJsonNull() ? jsonObject.get("address").getAsString() : null;
         String SDT = jsonObject.has("SDT") && !jsonObject.get("SDT").isJsonNull() ? jsonObject.get("SDT").getAsString() : null;
 
@@ -98,7 +98,7 @@ public class CuaHangRegisterServlet extends HttpServlet {
         TaiKhoanDAO tkdao = new TaiKhoanDAO();
 
         // Attempt to register the new shop manager
-        boolean success = tkdao.registerCuaHang(email, hashedPassword, shopName, address, SDT);
+        boolean success = tkdao.registerCuaHang(email, hashedPassword, name, address, SDT);
         
         if (success) {
             responseMap.put("success", true);

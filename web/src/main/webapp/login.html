@@ -82,7 +82,7 @@
         <div class="form-group"><label>Phương tiện</label><input type="text" id="regVehicle" required></div>`;
     } else if (role === 'store') {
       html += `
-        <div class="form-group"><label>Tên cửa hàng</label><input type="text" id="regStoreName" required></div>
+        <div class="form-group"><label>Tên cửa hàng</label><input type="text" id="regName" required></div>
         <div class="form-group"><label>Địa chỉ</label><input type="text" id="regAddress" required></div>
         <div class="form-group"><label>Số điện thoại</label><input type="text" id="regPhone" required></div>`;
     }
@@ -134,11 +134,11 @@
       payload = { ...payload, name, birthday, SDT };
       endpoint = 'api/shipper/register';
     } else if (role === 'store') {
-      const shopName = document.getElementById('regStoreName').value.trim();
+      const name = document.getElementById('regName').value.trim();
       const address = document.getElementById('regAddress').value.trim();
       const SDT = document.getElementById('regPhone').value.trim();
-      if (!shopName || !address || !SDT) { errorEl.textContent = 'Vui lòng điền đầy đủ thông tin.'; errorEl.style.display = 'block'; return; }
-      payload = { ...payload, shopName, address, SDT };
+      if (!name || !address || !SDT) { errorEl.textContent = 'Vui lòng điền đầy đủ thông tin.'; errorEl.style.display = 'block'; return; }
+      payload = { ...payload, name, address, SDT };
       endpoint = 'api/shop/register';
     }
 
