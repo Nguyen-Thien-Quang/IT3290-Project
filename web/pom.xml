@@ -50,6 +50,6 @@
   </dependencies>
   <build>
     <finalName>OnlineFoodWeb</finalName>
-    <sourceDirectory>web/src/main/java</sourceDirectory>
+    <sourceDirectory>src/main/java</sourceDirectory>
   </build>
 </project>

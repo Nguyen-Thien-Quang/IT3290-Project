@@ -31,5 +31,6 @@ config.properties
 *.sqlite
 
 GEMINI.md
-Progess.txt
+.cursor
+.junie
 Progress.txt

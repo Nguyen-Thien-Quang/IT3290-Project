@@ -40,12 +40,6 @@ public class ShipperRegisterServlet extends HttpServlet {
     /** Gson instance for JSON serialization and deserialization */
     private final Gson gson = new Gson();
 
-    /**
-     * @param req  the HttpServletRequest object containing the registration details in JSON format
-     * @param resp the HttpServletResponse object used to return the registration result as JSON
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         // Set response type to JSON and encoding to UTF-8
