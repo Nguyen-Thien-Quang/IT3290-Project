@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Servlet handling order history retrieval for both Customers and Shop Managers.
+ * Servlet handling order history retrieval for Customers, Shop Managers, and Shippers.
  * It provides historical order data based on the authenticated user's role stored in the session.
  * 
  * Endpoints:
@@ -88,11 +88,23 @@ public class LichSuDonHangServlet extends HttpServlet {
                     responseMap.put("success", false);
                     responseMap.put("message", "Shop ID not found in session.");
                 }
+            } else if (roles.SHIPPER.equals(userRole)) {
+                // Shipper Path: Retrieve shipperId from session
+                Integer shipperId = (Integer) session.getAttribute("shipperId");
+                if (shipperId != null) {
+                    history = donHangDAO.getDonHangsByShipper(shipperId);
+                    responseMap.put("success", true);
+                    responseMap.put("data", history);
+                } else {
+                    resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                    responseMap.put("success", false);
+                    responseMap.put("message", "Shipper ID not found in session.");
+                }
             } else {
-                // Role not supported for history retrieval (e.g., Shipper or Admin in this specific endpoint)
+                // Role not supported for history retrieval (e.g., Admin in this specific endpoint)
                 resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
                 responseMap.put("success", false);
-                responseMap.put("message", "Access denied: Order history is only available for Customers and Shop Managers.");
+                responseMap.put("message", "Access denied: Order history is not available for this role.");
             }
         } catch (Exception e) {
             // Handle unexpected database or processing errors
@@ -105,6 +117,4 @@ public class LichSuDonHangServlet extends HttpServlet {
         // 3. Finalize and send the JSON response
         resp.getWriter().write(gson.toJson(responseMap));
     }
-
-    // add one for shipper
 }
