@@ -112,4 +112,54 @@ public class GioHangDAO {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Xóa hoàn toàn một món ăn khỏi giỏ hàng.
+     * Thường dùng khi người dùng bấm nút "Xóa" hoặc gõ số lượng = 0.
+     * * @param idGioHang ID của giỏ hàng hiện tại.
+     * @param idMonAn ID của món ăn cần xóa.
+     * @return true nếu xóa thành công.
+     */
+    public boolean removeMonAnFromGioHang(int idGioHang, int idMonAn) {
+        String sql = "DELETE FROM GIOHANG_MONAN WHERE ID_GIOHANG = ? AND ID_MONAN = ?";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, idGioHang);
+            ps.setInt(2, idMonAn);
+
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Cập nhật số lượng của một món ăn đã có trong giỏ hàng.
+     * Dùng khi người dùng bấm nút [+] hoặc [-] để tăng/giảm số lượng trên giao diện.
+     * * @param idGioHang ID của giỏ hàng hiện tại.
+     * @param idMonAn ID của món ăn cần thay đổi số lượng.
+     * @param soLuong Số lượng mới.
+     * @return true nếu cập nhật thành công.
+     */
+    public boolean updateSoLuongMonAnInGioHang(int idGioHang, int idMonAn, int soLuong) {
+        String sql = "UPDATE GIOHANG_MONAN SET SOLUONG = ? WHERE ID_GIOHANG = ? AND ID_MONAN = ?";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, soLuong);
+            ps.setInt(2, idGioHang);
+            ps.setInt(3, idMonAn);
+
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
