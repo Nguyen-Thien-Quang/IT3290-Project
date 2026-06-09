@@ -88,4 +88,44 @@ public class ThongKeDAO {
         }
         return resultList;
     }
+
+    /**
+     * Thống kê tổng doanh thu của một cửa hàng trong giai đoạn cụ thể.
+     * Trả về kiểu float.
+     */
+    public float getDoanhThuTheoGiaiDoan(int storeId, Date startDate, Date endDate) {
+        // Đổi biến lưu trữ thành float và gán giá trị mặc định là 0f
+        float tongDoanhThu = 0f;
+
+        String sql = "SELECT SUM(D.TONGTIEN) AS TONG_DOANHTHU "
+                + "FROM DONHANG D "
+                + "WHERE D.TRANGTHAI = N'Đã giao' "
+                + "  AND CAST(D.THOIGIANDAT AS DATE) >= ? "
+                + "  AND CAST(D.THOIGIANDAT AS DATE) <= ? "
+                + "  AND D.ID_GIOHANG IN ( "
+                + "      SELECT DISTINCT GM.ID_GIOHANG "
+                + "      FROM GIOHANG_MONAN GM "
+                + "      JOIN MONAN M ON GM.ID_MONAN = M.ID_MONAN "
+                + "      WHERE M.ID_CUAHANG = ? "
+                + "  )";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setDate(1, startDate);
+            ps.setDate(2, endDate);
+            ps.setInt(3, storeId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // Sử dụng getFloat để lấy dữ liệu
+                    tongDoanhThu = rs.getFloat("TONG_DOANHTHU");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return tongDoanhThu;
+    }
 }

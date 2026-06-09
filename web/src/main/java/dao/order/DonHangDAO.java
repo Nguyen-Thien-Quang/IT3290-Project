@@ -247,4 +247,45 @@ public class DonHangDAO {
         }
         return list;
     }
+
+    /**
+     * Lấy danh sách lịch sử các đơn hàng mà một Shipper đã nhận giao.
+     * Danh sách này bao gồm cả đơn 'Đang giao' và 'Đã giao', sắp xếp theo thời gian mới nhất.
+     * @param shipperId ID của Shipper cần xem lịch sử.
+     * @return Danh sách các đối tượng {@link DonHang}.
+     */
+    public List<DonHang> getDonHangsByShipper(int shipperId) {
+        List<DonHang> list = new ArrayList<>();
+        // Truy vấn tất cả đơn hàng có gắn ID của Shipper này
+        String sql = "SELECT ID_DONHANG, ID_GIOHANG, ID_VOUCHER, ID_KHACHHANG, ID_SHIPPER, "
+                + "THOIGIANDAT, TRANGTHAI, TONGTIEN, PHUONGTHUCTHANHTOAN "
+                + "FROM DONHANG "
+                + "WHERE ID_SHIPPER = ? "
+                + "ORDER BY THOIGIANDAT DESC";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, shipperId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new DonHang(
+                            rs.getInt("ID_DONHANG"),
+                            rs.getInt("ID_GIOHANG"),
+                            rs.getInt("ID_VOUCHER"),
+                            rs.getInt("ID_KHACHHANG"),
+                            rs.getInt("ID_SHIPPER"),
+                            rs.getTimestamp("THOIGIANDAT"),
+                            rs.getNString("TRANGTHAI"),
+                            rs.getDouble("TONGTIEN"),
+                            rs.getNString("PHUONGTHUCTHANHTOAN")
+                    ));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }
