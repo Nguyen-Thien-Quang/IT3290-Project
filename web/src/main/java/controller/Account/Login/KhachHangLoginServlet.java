@@ -21,8 +21,15 @@ import jakarta.servlet.http.HttpSession;
 
 /**
  * Servlet handling login requests for Customer (Khách hàng) accounts.
- * This servlet processes POST requests containing email and password in JSON format,
- * validates the credentials, and manages the user session upon successful login.
+ * This servlet processes POST requests containing email and password in JSON format.
+ * It validates the credentials against the database, verifies the user's role,
+ * and manages the session by storing both the account information and the specific customer ID.
+ * 
+ * Body Request format:
+ * {
+ *   "email": "customer@example.com",
+ *   "password": "yourpassword"
+ * }
  */
 @WebServlet("/api/customer/login")
 public class KhachHangLoginServlet extends HttpServlet {
@@ -30,20 +37,18 @@ public class KhachHangLoginServlet extends HttpServlet {
     private final Gson gson = new Gson();
 
     /**
-     * Handles POST requests for customer login.
-     * 
      * @param req  the HttpServletRequest object containing the login credentials in JSON format
-     * @param resp the HttpServletResponse object used to return the login result
+     * @param resp the HttpServletResponse object used to return the login result as JSON
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // Set response type to JSON and encoding to UTF-8
+        // Set response type to JSON and encoding to UTF-8 to support Vietnamese characters
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
 
-        // Read the JSON request body
+        // Read the JSON request body from the input stream
         StringBuilder sb = new StringBuilder();
         String line;
         try (BufferedReader reader = req.getReader()) {
@@ -52,12 +57,12 @@ public class KhachHangLoginServlet extends HttpServlet {
             }
         }
 
-        // Parse the JSON request body into a JsonObject
+        // Parse the JSON string into a JsonObject
         JsonObject jsonObject;
         try {
             jsonObject = gson.fromJson(sb.toString(), JsonObject.class);
         } catch (Exception e) {
-            // Return 400 Bad Request if JSON is invalid
+            // Return 400 Bad Request if the JSON payload is malformed
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             Map<String, Object> errorResp = new HashMap<>();
             errorResp.put("success", false);
@@ -66,7 +71,7 @@ public class KhachHangLoginServlet extends HttpServlet {
             return;
         }
 
-        // Extract email and password from the JSON object
+        // Extract credentials from the JSON object with null checks
         String email = jsonObject.has("email") && !jsonObject.get("email").isJsonNull() ? jsonObject.get("email").getAsString() : null;
         String password = jsonObject.has("password") && !jsonObject.get("password").isJsonNull() ? jsonObject.get("password").getAsString() : null;
 
@@ -74,7 +79,7 @@ public class KhachHangLoginServlet extends HttpServlet {
         TaiKhoanDAO tkdao = new TaiKhoanDAO();
         HttpSession session = req.getSession();
 
-        // Validate that both email and password are provided
+        // Validate that both email and password were provided in the request
         if (email == null || password == null) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             responseMap.put("success", false);
@@ -83,7 +88,7 @@ public class KhachHangLoginServlet extends HttpServlet {
             return;
         }
 
-        // 1. Check if the provided email exists in the database
+        // 1. Verify if the email exists in the system to provide specific feedback
         if (!tkdao.checkEmailExist(email)) {
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             responseMap.put("success", false);
@@ -92,42 +97,43 @@ public class KhachHangLoginServlet extends HttpServlet {
             return;
         }
 
-        // 2. Hash the input password to compare with the stored hashed password in the database
+        // 2. Hash the input password using the SHA-256 utility for comparison
         String hashedPassword = HashUtil.hashPassword(password);
 
-        // 3. Attempt to login with hashed credentials
+        // 3. Attempt to authenticate using the TaiKhoanDAO
         TaiKhoan user = tkdao.login(email, hashedPassword);
         if (user != null) {
-            // 4. Verify that the account has the "Khách hàng" (Customer) role
+            // 4. Role Authorization: Ensure the account has the correct "Khách hàng" role
             if (!"Khách hàng".equals(user.getVaiTro())) {
                 resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
                 responseMap.put("success", false);
                 responseMap.put("message", "Access denied: This account is not a Customer account!");
             } else {
-                // Successful login: store user info in session
+                // Authentication successful: establish the user session
                 session.setAttribute("user", user);
 
-                // Session Enrichment: Fetch and store the customerId
+                // 5. Session Enrichment: Fetch and store the role-specific customerId
+                // This allows other servlets to easily access the customer's primary key
                 KhachHangDAO kdao = new KhachHangDAO();
                 model.user.KhachHang k = kdao.getByAccountId(user.getIdTaiKhoan());
                 if (k != null) {
                     session.setAttribute("customerId", k.getIdKhachHang());
                 }
 
+                // Prepare successful response
                 responseMap.put("success", true);
                 responseMap.put("message", "Login successful");
-                // Return basic user info (excluding sensitive data)
                 responseMap.put("role", user.getVaiTro());
                 responseMap.put("email", user.getEmail());
             }
         } else {
-            // Login failed due to incorrect password
+            // 6. Authentication failure: Likely due to an incorrect password
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             responseMap.put("success", false);
             responseMap.put("message", "Invalid password!");
         }
         
-        // Write the final response back to the client
+        // Finalize and send the JSON response
         resp.getWriter().write(gson.toJson(responseMap));
     }
 }

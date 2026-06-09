@@ -1,4 +1,4 @@
-package main.java.controller.Account;
+package controller.Account;
 
 import java.io.IOException;
 
