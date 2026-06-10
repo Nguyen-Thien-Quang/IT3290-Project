@@ -18,6 +18,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import model.user.roles;
 
 /**
  * Servlet handling login requests for Customer (Khách hàng) accounts.
@@ -104,7 +105,7 @@ public class KhachHangLoginServlet extends HttpServlet {
         TaiKhoan user = tkdao.login(email, hashedPassword);
         if (user != null) {
             // 4. Role Authorization: Ensure the account has the correct "Khách hàng" role
-            if (!"Khách hàng".equals(user.getVaiTro())) {
+            if (!roles.CUSTOMER.equals(user.getVaiTro())) {
                 resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
                 responseMap.put("success", false);
                 responseMap.put("message", "Access denied: This account is not a Customer account!");

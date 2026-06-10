@@ -18,6 +18,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import model.user.roles;
 
 /**
  * Servlet handling login requests for Shipper accounts.
@@ -109,7 +110,7 @@ public class ShipperLoginServlet extends HttpServlet {
         TaiKhoan user = tkdao.login(email, hashedPassword);
         if (user != null) {
             // 4. Role Authorization: Ensure the account has the correct "Shipper" role
-            if (!"Shipper".equals(user.getVaiTro())) {
+            if (!roles.SHIPPER.equals(user.getVaiTro())) {
                 resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
                 responseMap.put("success", false);
                 responseMap.put("message", "Access denied: This account is not a Shipper account!");
