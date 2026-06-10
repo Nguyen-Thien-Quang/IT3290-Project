@@ -1,31 +1,37 @@
 # Don Hang Hien Tai API Specification
 
-## Basic Information
+## 1. Get Pending Orders
 
-* **API Name:** Get Pending Orders
 * **Description:** Retrieves all orders currently in 'Chờ xác nhận' (Pending) status. This is primarily used by shippers to find available deliveries.
 * **HTTP Method:** GET
 * **URL Path:** `/api/order`
 * **Example URL Request:** `/api/order`
 
-## Authentication
-
-* **Login Required:** Yes
-* **Role:** `Shipper`
-* **Session Requirement:** Requires an active session with a `user` (TaiKhoan) object.
-
-## Request Parameters
-
-### Path Parameters
+### Request Parameters
 None.
 
-### Query Parameters
-None.
+### Success Response
+**HTTP Status:** 200 OK
+```json
+{
+  "success": true,
+  "data": [...],
+  "count": 1
+}
+```
 
-### Request Body
-None.
+## 2. Accept Order
 
-## Response
+* **Description:** Allows a shipper to accept a pending order. Changes status to 'Đang giao'.
+* **HTTP Method:** POST
+* **URL Path:** `/api/order`
+* **Example URL Request:** `/api/order?id=10`
+
+### Request Parameters
+
+| Parameter | Type | In | Description |
+| --------- | ---- | -- | ----------- |
+| `id` | int | Query | ID of the order to accept. |
 
 ### Success Response
 
@@ -35,54 +41,34 @@ None.
 ```json
 {
   "success": true,
-  "data": [
-    {
-      "idDonHang": 10,
-      "idGioHang": 25,
-      "idKhachHang": 5,
-      "idShipper": null,
-      "idVoucher": null,
-      "thoiGianDat": "Jun 10, 2026, 10:30:00 AM",
-      "trangThai": "Chờ xác nhận",
-      "tongTien": 155000.0,
-      "phuongThucThanhToan": "Tiền mặt"
-    }
-  ],
-  "count": 1
+  "message": "Order accepted successfully. Status changed to 'Đang giao'"
 }
 ```
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| `success` | boolean | Indicates if the request was successful. |
-| `data` | Array | List of pending `DonHang` objects. |
-| `count` | int | Total number of pending orders returned. |
 
 ### Error Responses
 
+#### 400 Bad Request
+Returned if `id` is missing, invalid, or the order cannot be accepted (e.g., already taken).
+```json
+{
+  "success": false,
+  "message": "Missing order ID"
+}
+```
+
 #### 401 Unauthorized
-Returned when the user is not logged in or is not a Shipper.
+Returned if not logged in as a Shipper.
 
-**HTTP Status:** 401 Unauthorized
-```json
-{
-  "success": false,
-  "message": "Unauthorized: Please login as a Shipper"
-}
-```
+#### 403 Forbidden
+Returned if the shipper profile is not found for the logged-in account.
 
-#### 500 Internal Server Error
-Returned when a system or database error occurs.
+## Authentication
 
-**HTTP Status:** 500 Internal Server Error
-```json
-{
-  "success": false,
-  "message": "System error: [Error details]"
-}
-```
+* **Login Required:** Yes
+* **Role:** `Shipper`
+* **Session Requirement:** Requires an active session with a `user` (TaiKhoan) object.
 
-## Business Rules
+## Response Field Definitions (GET)
 
 * Only orders with status `Chờ xác nhận` (Pending) are returned.
 * Only users with the `Shipper` role can access this endpoint.

@@ -288,4 +288,43 @@ public class DonHangDAO {
         }
         return list;
     }
+
+    /**
+     * Lấy danh sách các đơn hàng mà một Shipper đang đi giao (Trạng thái 'Đang giao').
+     * @param shipperId ID của Shipper.
+     * @return Danh sách các đơn hàng đang được giao bởi shipper này.
+     */
+    public List<DonHang> getShippingOrdersByShipper(int shipperId) {
+        List<DonHang> list = new ArrayList<>();
+        String sql = "SELECT ID_DONHANG, ID_GIOHANG, ID_VOUCHER, ID_KHACHHANG, ID_SHIPPER, "
+                + "THOIGIANDAT, TRANGTHAI, TONGTIEN, PHUONGTHUCTHANHTOAN "
+                + "FROM DONHANG "
+                + "WHERE ID_SHIPPER = ? AND TRANGTHAI = N'Đang giao' "
+                + "ORDER BY THOIGIANDAT DESC";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, shipperId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new DonHang(
+                            rs.getInt("ID_DONHANG"),
+                            rs.getInt("ID_GIOHANG"),
+                            rs.getInt("ID_VOUCHER"),
+                            rs.getInt("ID_KHACHHANG"),
+                            rs.getInt("ID_SHIPPER"),
+                            rs.getTimestamp("THOIGIANDAT"),
+                            rs.getNString("TRANGTHAI"),
+                            rs.getDouble("TONGTIEN"),
+                            rs.getNString("PHUONGTHUCTHANHTOAN")
+                    ));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }
