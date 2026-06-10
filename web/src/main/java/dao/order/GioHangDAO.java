@@ -2,7 +2,10 @@ package dao.order;
 
 import context.DBContext;
 import model.order.GioHang;
+import model.order.GioHangMonAn;
+
 import java.sql.*;
+import java.util.List;
 
 /**
  * Lớp DAO (Data Access Object) xử lý các thao tác dữ liệu liên quan đến Giỏ hàng.
@@ -161,5 +164,33 @@ public class GioHangDAO {
             e.printStackTrace();
             return false;
         }
+    }
+
+    /**
+     * Lấy danh sách các món ăn và số lượng trong một giỏ hàng.
+     * @param ghId ID của giỏ hàng.
+     * @return Danh sách các đối tượng {@link model.order.GioHangMonAn}.
+     */
+    public List<GioHangMonAn> getItemsByCartId(int ghId) {
+        List<GioHangMonAn> list = new java.util.ArrayList<>();
+        String sql = "SELECT ID_GIOHANG, ID_MONAN, SOLUONG FROM GIOHANG_MONAN WHERE ID_GIOHANG = ?";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, ghId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new GioHangMonAn(
+                            rs.getInt("ID_GIOHANG"),
+                            rs.getInt("ID_MONAN"),
+                            rs.getInt("SOLUONG")
+                    ));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }
