@@ -13,6 +13,7 @@ import com.google.gson.Gson;
 import dao.user.CuaHangDAO;
 import model.user.CuaHang;
 import model.user.TaiKhoan;
+import model.user.roles;
 
 @WebServlet("/api/shop/profile")
 public class CuaHangProfileServlet extends HttpServlet {
@@ -26,7 +27,7 @@ public class CuaHangProfileServlet extends HttpServlet {
         TaiKhoan userAccount = (TaiKhoan) session.getAttribute("user");
 
         // 2. Safety check: Is the user logged in and are they a Shop Manager?
-        if (userAccount == null || !"Cửa hàng".equals(userAccount.getVaiTro())) {
+        if (userAccount == null || !roles.SHOP.equals(userAccount.getVaiTro())) {
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             resp.getWriter().write("{\"error\": \"Unauthorized or not a shop account\"}");
             return;
