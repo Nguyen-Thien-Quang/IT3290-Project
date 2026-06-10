@@ -327,4 +327,64 @@ public class DonHangDAO {
         }
         return list;
     }
+
+    /**
+     * Lấy danh sách các đơn hàng hiện tại của khách hàng (Trạng thái 'Chờ xác nhận' hoặc 'Đang giao').
+     * @param khId ID của khách hàng.
+     * @return Danh sách các đơn hàng đang hoạt động.
+     */
+    public List<DonHang> getActiveOrdersByKhachHang(int khId) {
+        List<DonHang> list = new ArrayList<>();
+        String sql = "SELECT ID_DONHANG, ID_GIOHANG, ID_VOUCHER, ID_KHACHHANG, ID_SHIPPER, THOIGIANDAT, TRANGTHAI, TONGTIEN, PHUONGTHUCTHANHTOAN "
+                + "FROM DONHANG WHERE ID_KHACHHANG = ? AND (TRANGTHAI = N'Chờ xác nhận' OR TRANGTHAI = N'Đang giao') "
+                + "ORDER BY THOIGIANDAT DESC";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, khId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new DonHang(
+                            rs.getInt("ID_DONHANG"),
+                            rs.getInt("ID_GIOHANG"),
+                            rs.getInt("ID_VOUCHER"),
+                            rs.getInt("ID_KHACHHANG"),
+                            rs.getInt("ID_SHIPPER"),
+                            rs.getTimestamp("THOIGIANDAT"),
+                            rs.getNString("TRANGTHAI"),
+                            rs.getDouble("TONGTIEN"),
+                            rs.getNString("PHUONGTHUCTHANHTOAN")
+                    ));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
+     * Khách hàng hủy đơn hàng.
+     * Chỉ có thể hủy khi trạng thái là 'Chờ xác nhận'.
+     * @param donHangId ID của đơn hàng cần hủy.
+     * @param khId ID của khách hàng (để đảm bảo chính chủ).
+     * @return true nếu hủy thành công.
+     */
+    public boolean cancelOrder(int donHangId, int khId) {
+        String sql = "UPDATE DONHANG SET TRANGTHAI = N'Đã hủy' WHERE ID_DONHANG = ? AND ID_KHACHHANG = ? AND TRANGTHAI = N'Chờ xác nhận'";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, donHangId);
+            ps.setInt(2, khId);
+
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
