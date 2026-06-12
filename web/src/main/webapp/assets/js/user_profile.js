@@ -1,0 +1,542 @@
+  (function() {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) { window.location.href = 'login.html'; return; }
+
+    const DEFAULT_IMG = [
+      'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=640&q=80',
+      'https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=640&q=80',
+      'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=640&q=80',
+      'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=640&q=80',
+      'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=640&q=80'
+    ];
+
+    const SAMPLE_STORES = [
+      { email:'store@example.com', password:'123456', role:'store', storeName:'FoodShip Kitchen', address:'Cầu Giấy, Hà Nội', phone:'0900000001', logo:DEFAULT_IMG[0] },
+      { email:'kfc1@gmail.com', password:'kfc@001', role:'store', storeName:'KFC Nguyễn Tuân', address:'Nguyễn Tuân, Thanh Xuân, Hà Nội', phone:'0901111111', logo:DEFAULT_IMG[1] },
+      { email:'lotte@gmail.com', password:'lotte@003', role:'store', storeName:'Lotte Giải Phóng', address:'Giải Phóng, Hoàng Mai, Hà Nội', phone:'0903333333', logo:DEFAULT_IMG[2] }
+    ];
+
+    const SAMPLE_MENU = [
+      { id:1, name:'Cơm sườn nướng', price:40000, desc:'Cơm trắng, sườn nướng mật ong', category:'Cơm phần', img:DEFAULT_IMG[0] },
+      { id:2, name:'Cơm gà xối mỡ', price:45000, desc:'Gà chiên giòn, cơm chiên', category:'Cơm phần', img:DEFAULT_IMG[1] },
+      { id:3, name:'Bún bò Huế', price:50000, desc:'Bún bò cay đặc biệt', category:'Mì - Phở - Bún', img:DEFAULT_IMG[4] },
+      { id:4, name:'Phở bò tái', price:55000, desc:'Phở bò tái nạm', category:'Mì - Phở - Bún', img:DEFAULT_IMG[4] },
+      { id:5, name:'Bánh mì thịt nướng', price:25000, desc:'Bánh mì giòn, thịt nướng', category:'Đồ ăn nhanh', img:DEFAULT_IMG[2] },
+      { id:6, name:'Bún chả Hà Nội', price:45000, desc:'Bún chả nướng than hoa', category:'Mì - Phở - Bún', img:DEFAULT_IMG[0] },
+      { id:7, name:'Burger bò', price:75000, desc:'Burger bò, phô mai, rau tươi', category:'Burger', img:DEFAULT_IMG[2] },
+      { id:8, name:'Gà rán giòn cay', price:89000, desc:'Gà rán giòn cay 2 miếng', category:'Gà rán', img:DEFAULT_IMG[1] },
+      { id:9, name:'Pizza hải sản', price:129000, desc:'Pizza phô mai và hải sản', category:'Pizza', img:DEFAULT_IMG[3] },
+      { id:10, name:'Trà đào cam sả', price:35000, desc:'Trà đào mát lạnh', category:'Đồ uống', img:DEFAULT_IMG[4] }
+    ];
+
+    const appContainer = document.getElementById('appContainer');
+    let cart = JSON.parse(localStorage.getItem('cart_' + currentUser.email) || '[]');
+
+    function formatMoney(value) { return Number(value || 0).toLocaleString('vi-VN') + 'đ'; }
+    function todayISO() { return new Date().toISOString().split('T')[0]; }
+    function firstDayISO() {
+      const d = new Date();
+      return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
+    }
+    function generateId() { return 'DH' + Math.random().toString(36).slice(2, 8).toUpperCase(); }
+    function read(key, fallback) { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
+    function write(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+    function saveCart() { write('cart_' + currentUser.email, cart); }
+    function getOrders() { return read('allOrders', []); }
+    function saveOrders(orders) { write('allOrders', orders); }
+    function getStores() { return read('users_store', []); }
+    function getMenu(storeEmail) { return read('menu_' + storeEmail, []); }
+    function saveMenu(storeEmail, menu) { write('menu_' + storeEmail, menu); }
+    function escapeAttr(value) {
+      return String(value || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function seedData() {
+      const stores = getStores();
+      SAMPLE_STORES.forEach(store => {
+        if (!stores.some(s => s.email === store.email)) stores.push(store);
+        if (getMenu(store.email).length === 0) {
+          saveMenu(store.email, SAMPLE_MENU.map((item, idx) => ({
+            ...item,
+            id: idx + 1,
+            storeEmail: store.email,
+            storeName: store.storeName,
+            price: item.price + (idx % 3) * 5000
+          })));
+        }
+      });
+      write('users_store', stores);
+      if (!localStorage.getItem('allOrders')) write('allOrders', []);
+      if (!localStorage.getItem('vouchers_' + currentUser.email)) {
+        write('vouchers_' + currentUser.email, [
+          { id:'VC10', type:'-10%', label:'Giảm 10%', value:10 },
+          { id:'VC30', type:'-30%', label:'Giảm 30%', value:30 },
+          { id:'FREESHIP', type:'Freeship', label:'Freeship', value:0 }
+        ]);
+      }
+    }
+
+    function modal(title, bodyHtml) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalBody').innerHTML = bodyHtml;
+      document.getElementById('modalBackdrop').classList.add('active');
+    }
+    document.getElementById('modalClose').addEventListener('click', () => document.getElementById('modalBackdrop').classList.remove('active'));
+    document.getElementById('modalBackdrop').addEventListener('click', e => {
+      if (e.target.id === 'modalBackdrop') document.getElementById('modalBackdrop').classList.remove('active');
+    });
+
+    function shell(roleTitle, navHtml, bodyHtml, title) {
+      const displayName = currentUser.name || currentUser.storeName || currentUser.email;
+      const avatar = currentUser.avatar || currentUser.logo || DEFAULT_IMG[0];
+      appContainer.innerHTML = `
+      <aside class="sidebar">
+        <div class="logo-area"><i class="fas fa-utensils"></i> ${roleTitle}</div>
+        <nav class="nav-menu">${navHtml}</nav>
+        <div class="sidebar-footer">
+          <span>${displayName}</span>
+          <button class="btn btn-outline btn-sm" onclick="logout()">Đăng xuất</button>
+        </div>
+      </aside>
+      <div class="main-wrapper">
+        <header class="header">
+          <span class="page-title" id="headerTitle">${title}</span>
+          <div class="header-right"><img src="${avatar}" class="header-avatar" alt=""><span class="header-name">${displayName}</span></div>
+        </header>
+        <div class="content">${bodyHtml}</div>
+      </div>`;
+    }
+
+    function bindNavigation(titleMap) {
+      document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', function() {
+        const page = this.dataset.page;
+        document.querySelectorAll('.page-section').forEach(section => section.classList.remove('active'));
+        document.getElementById(page + 'Page').classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        this.classList.add('active');
+        document.getElementById('headerTitle').textContent = titleMap[page] || page;
+        if (window.pageHooks && window.pageHooks[page]) window.pageHooks[page]();
+      }));
+    }
+
+    function renderCustomerUI() {
+      shell('Khách hàng',
+              `<button class="nav-item active" data-page="search"><i class="fas fa-search"></i> Tìm kiếm</button>
+       <button class="nav-item" data-page="cart"><i class="fas fa-shopping-cart"></i> Giỏ hàng <span id="cartBadge" style="background:#B8860B;color:white;border-radius:50%;padding:2px 6px;font-size:11px;display:none;">0</span></button>
+       <button class="nav-item" data-page="orders"><i class="fas fa-history"></i> Lịch sử đơn</button>
+       <button class="nav-item" data-page="profile"><i class="fas fa-id-card"></i> Thông tin</button>`,
+              `<div class="page-section active" id="searchPage">
+         <div class="card">
+           <div class="section-title"><i class="fas fa-search"></i> Tìm món / Tìm cửa hàng</div>
+           <div class="search-tabs"><button class="search-tab active" data-search-tab="food">Món ăn</button><button class="search-tab" data-search-tab="store">Cửa hàng</button></div>
+           <div class="toolbar">
+             <div class="form-group"><label>Từ khóa</label><input class="form-control" id="searchKeyword" placeholder="Nhập tên món hoặc cửa hàng"></div>
+             <div class="form-group" id="priceFilter"><label>Giá tối đa</label><input class="form-control" id="maxPrice" type="number" min="0" placeholder="0 = không giới hạn"></div>
+             <button class="btn btn-primary" id="searchBtn"><i class="fas fa-search"></i> Tìm</button>
+           </div>
+           <div class="menu-grid" id="searchResults"></div>
+         </div>
+       </div>
+       <div class="page-section" id="cartPage">
+         <div class="card">
+           <div class="section-title"><i class="fas fa-shopping-cart"></i> Danh sách món đã thêm</div>
+           <div id="cartItems"></div>
+           <div class="form-group" style="margin-top:16px;"><label>Voucher</label><select class="form-control" id="voucherSelect"></select></div>
+           <div class="form-group"><label>Phương thức thanh toán</label><select class="form-control" id="paymentMethodSelect"><option value="Tiền mặt">Tiền mặt</option><option value="Chuyển khoản">Chuyển khoản</option><option value="Ví điện tử">Ví điện tử</option></select></div>
+           <div class="cart-summary">
+             <div class="summary-line"><span>Tạm tính</span><span id="subtotalText">0đ</span></div>
+             <div class="summary-line"><span>Giảm giá</span><span id="discountText">0đ</span></div>
+             <div class="summary-line"><strong>Tổng</strong><span class="cart-total" id="cartTotal">0đ</span></div>
+           </div>
+           <button class="btn btn-primary btn-block" id="placeOrderBtn" style="margin-top:12px;"><i class="fas fa-check"></i> Đặt hàng</button>
+         </div>
+       </div>
+       <div class="page-section" id="ordersPage"><div class="card"><div class="section-title"><i class="fas fa-history"></i> Danh sách đơn đã đặt</div><div class="orders-grid" id="customerOrdersList"></div></div></div>
+       <div class="page-section" id="profilePage"><div class="card"><div class="section-title"><i class="fas fa-id-card"></i> Thông tin cá nhân</div><table class="info-table">
+         <tr><td>Avatar</td><td><img class="sidebar-avatar" src="${currentUser.avatar || DEFAULT_IMG[0]}" alt=""></td></tr>
+         <tr><td>Họ tên</td><td>${currentUser.name || ''}</td></tr><tr><td>Email</td><td>${currentUser.email}</td></tr><tr><td>SĐT</td><td>${currentUser.phone || ''}</td></tr><tr><td>Địa chỉ</td><td>${currentUser.address || ''}</td></tr>
+       </table></div></div>`,
+              'Tìm món / Tìm cửa hàng');
+
+      let searchTab = 'food';
+      window.pageHooks = { cart: renderCart, orders: renderCustomerOrders, search: renderSearch };
+      bindNavigation({ search:'Tìm món / Tìm cửa hàng', cart:'Giỏ hàng', orders:'Lịch sử đơn', profile:'Thông tin cá nhân' });
+
+      document.querySelectorAll('.search-tab').forEach(tab => tab.addEventListener('click', function() {
+        searchTab = this.dataset.searchTab;
+        document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        document.getElementById('priceFilter').style.display = searchTab === 'food' ? 'flex' : 'none';
+        renderSearch();
+      }));
+      document.getElementById('searchBtn').addEventListener('click', renderSearch);
+      document.getElementById('searchKeyword').addEventListener('input', renderSearch);
+      document.getElementById('maxPrice').addEventListener('input', renderSearch);
+      document.getElementById('voucherSelect').addEventListener('change', renderCart);
+      document.getElementById('paymentMethodSelect').addEventListener('change', renderCart);
+      document.getElementById('placeOrderBtn').addEventListener('click', placeOrder);
+
+      function allFoods() {
+        return getStores().flatMap(store => getMenu(store.email).map(food => ({ ...food, storeEmail: store.email, storeName: store.storeName })));
+      }
+
+      function renderSearch() {
+        const keyword = document.getElementById('searchKeyword').value.trim().toLowerCase();
+        const maxPrice = Number(document.getElementById('maxPrice').value || 0);
+        const results = document.getElementById('searchResults');
+        if (searchTab === 'store') {
+          const stores = getStores().filter(s => !keyword || s.storeName.toLowerCase().includes(keyword) || (s.address || '').toLowerCase().includes(keyword));
+          results.innerHTML = stores.length ? stores.map(store => `
+          <div class="store-card">
+            <img class="store-img" src="${store.logo || DEFAULT_IMG[0]}" alt="">
+            <div class="store-name">${store.storeName}</div>
+            <div class="muted">${store.address || ''}</div>
+            <button class="btn btn-outline btn-sm view-store" data-email="${store.email}">Xem món</button>
+          </div>`).join('') : '<div class="empty-message">Không tìm thấy cửa hàng</div>';
+          return;
+        }
+        const foods = allFoods().filter(food => {
+          const matchText = !keyword || food.name.toLowerCase().includes(keyword) || food.storeName.toLowerCase().includes(keyword);
+          const matchPrice = maxPrice <= 0 || Number(food.price) <= maxPrice;
+          return matchText && matchPrice;
+        });
+        results.innerHTML = foods.length ? foods.map(food => foodCard(food)).join('') : '<div class="empty-message">Không tìm thấy món ăn</div>';
+      }
+
+      function foodCard(food) {
+        return `<div class="menu-item-card">
+        <img class="food-img" src="${food.img || DEFAULT_IMG[0]}" alt="">
+        <div class="food-name">${food.name}</div>
+        <div class="food-desc">${food.category || 'Món ăn'} · ${food.storeName}</div>
+        <div class="food-price">${formatMoney(food.price)}</div>
+        <button class="btn btn-outline btn-sm food-detail" data-store="${food.storeEmail}" data-id="${food.id}"><i class="fas fa-circle-info"></i> Chi tiết</button>
+        <button class="btn btn-primary btn-sm add-cart" data-store="${food.storeEmail}" data-id="${food.id}"><i class="fas fa-plus"></i> Thêm</button>
+      </div>`;
+      }
+
+      document.addEventListener('click', customerClickHandler);
+      function customerClickHandler(e) {
+        const addBtn = e.target.closest('.add-cart');
+        const detailBtn = e.target.closest('.food-detail');
+        const storeBtn = e.target.closest('.view-store');
+        const orderBtn = e.target.closest('.order-detail');
+        if (addBtn) addToCart(addBtn.dataset.store, Number(addBtn.dataset.id));
+        if (detailBtn) showFoodDetail(detailBtn.dataset.store, Number(detailBtn.dataset.id));
+        if (storeBtn) {
+          searchTab = 'food';
+          document.querySelector('[data-search-tab="food"]').click();
+          document.getElementById('searchKeyword').value = getStores().find(s => s.email === storeBtn.dataset.email).storeName;
+          renderSearch();
+        }
+        if (orderBtn) showOrderDetail(orderBtn.dataset.id);
+      }
+
+      function addToCart(storeEmail, foodId) {
+        const store = getStores().find(s => s.email === storeEmail);
+        const food = getMenu(storeEmail).find(f => f.id === foodId);
+        if (!food || !store) return;
+        const existing = cart.find(item => item.foodId === foodId && item.storeEmail === storeEmail);
+        if (existing) existing.quantity += 1;
+        else cart.push({ foodId, storeEmail, name: food.name, price: food.price, quantity: 1, storeName: store.storeName, img: food.img, category: food.category });
+        saveCart();
+        updateBadge();
+      }
+
+      function showFoodDetail(storeEmail, foodId) {
+        const food = getMenu(storeEmail).find(f => f.id === foodId);
+        const store = getStores().find(s => s.email === storeEmail);
+        if (!food || !store) return;
+        modal(food.name, `<img class="food-img" style="height:220px;margin-bottom:12px;" src="${food.img || DEFAULT_IMG[0]}" alt="">
+        <div class="detail-list">
+          <div class="detail-row"><strong>Loại món</strong><span>${food.category || ''}</span></div>
+          <div class="detail-row"><strong>Cửa hàng</strong><span>${store.storeName}</span></div>
+          <div class="detail-row"><strong>Giá</strong><span>${formatMoney(food.price)}</span></div>
+          <div class="detail-row"><strong>Mô tả</strong><span>${food.desc || ''}</span></div>
+        </div>`);
+      }
+
+      function renderVoucherOptions() {
+        const vouchers = read('vouchers_' + currentUser.email, []);
+        const select = document.getElementById('voucherSelect');
+        const selected = select.value;
+        select.innerHTML = '<option value="">Không dùng voucher</option>' + vouchers.map(v => `<option value="${v.id}">${v.label}</option>`).join('');
+        select.value = selected;
+      }
+
+      function renderCart() {
+        renderVoucherOptions();
+        const container = document.getElementById('cartItems');
+        if (cart.length === 0) {
+          container.innerHTML = '<div class="empty">Giỏ hàng trống</div>';
+        } else {
+          container.innerHTML = cart.map((item, idx) => `
+          <div class="cart-item">
+            <div><strong>${item.name}</strong><br><small>${formatMoney(item.price)} · ${item.storeName}</small></div>
+            <input class="qty-input cart-qty" type="number" min="1" value="${item.quantity}" data-index="${idx}">
+            <div>${formatMoney(item.price * item.quantity)}</div>
+            <button class="btn btn-danger btn-sm remove-cart" data-index="${idx}"><i class="fas fa-trash"></i></button>
+          </div>`).join('');
+        }
+        document.querySelectorAll('.cart-qty').forEach(input => input.addEventListener('change', function() {
+          cart[Number(this.dataset.index)].quantity = Math.max(1, Number(this.value || 1));
+          saveCart();
+          renderCart();
+          updateBadge();
+        }));
+        document.querySelectorAll('.remove-cart').forEach(btn => btn.addEventListener('click', function() {
+          cart.splice(Number(this.dataset.index), 1);
+          saveCart();
+          renderCart();
+          updateBadge();
+        }));
+        const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const voucher = read('vouchers_' + currentUser.email, []).find(v => v.id === document.getElementById('voucherSelect').value);
+        const discount = voucher && voucher.value ? Math.round(subtotal * voucher.value / 100) : 0;
+        document.getElementById('subtotalText').textContent = formatMoney(subtotal);
+        document.getElementById('discountText').textContent = formatMoney(discount);
+        document.getElementById('cartTotal').textContent = formatMoney(subtotal - discount);
+      }
+
+      function placeOrder() {
+        if (cart.length === 0) return alert('Giỏ hàng trống!');
+        const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const voucher = read('vouchers_' + currentUser.email, []).find(v => v.id === document.getElementById('voucherSelect').value);
+        const discount = voucher && voucher.value ? Math.round(subtotal * voucher.value / 100) : 0;
+        const paymentMethod = document.getElementById('paymentMethodSelect').value;
+        const order = {
+          id: generateId(),
+          customerName: currentUser.name || currentUser.email,
+          customerEmail: currentUser.email,
+          customerAddress: currentUser.address || '',
+          items: cart.map(item => ({ ...item })),
+          voucher: voucher ? voucher.label : '',
+          paymentMethod,
+          discount,
+          subtotal,
+          total: subtotal - discount,
+          status: 'Chờ xác nhận',
+          orderTime: new Date().toLocaleString('vi-VN'),
+          orderDate: todayISO(),
+          storeEmail: cart[0].storeEmail
+        };
+        const orders = getOrders();
+        orders.push(order);
+        saveOrders(orders);
+        cart = [];
+        saveCart();
+        updateBadge();
+        renderCart();
+        alert('Đặt hàng thành công!');
+        document.querySelector('[data-page="orders"]').click();
+      }
+
+      function renderCustomerOrders() {
+        const orders = getOrders().filter(order => order.customerEmail === currentUser.email).reverse();
+        document.getElementById('customerOrdersList').innerHTML = orders.length ? orders.map(order => `
+        <div class="order-card">
+          <div class="order-header"><span class="order-id">#${order.id}</span><span class="status-badge ${order.status === 'Đang giao' ? 'shipping' : order.status === 'Đã giao' ? 'done' : ''}">${order.status}</span></div>
+          <div class="muted">${order.orderTime}</div>
+          <div>${order.items.map(item => item.name + ' x' + item.quantity).join(', ')}</div>
+          <div class="total">${formatMoney(order.total)}</div>
+          <button class="btn btn-outline btn-sm order-detail" data-id="${order.id}">Xem chi tiết</button>
+        </div>`).join('') : '<div class="empty-message">Chưa có đơn hàng</div>';
+      }
+
+      function showOrderDetail(orderId) {
+        const order = getOrders().find(o => o.id === orderId);
+        if (!order) return;
+        modal('Đơn hàng #' + order.id, `
+        <div class="detail-list">
+          <div class="detail-row"><strong>Ngày đặt</strong><span>${order.orderTime}</span></div>
+          <div class="detail-row"><strong>Trạng thái</strong><span>${order.status}</span></div>
+          <div class="detail-row"><strong>Địa chỉ giao</strong><span>${order.customerAddress || ''}</span></div>
+          <div class="detail-row"><strong>Voucher</strong><span>${order.voucher || 'Không dùng'}</span></div>
+          <div class="detail-row"><strong>Thanh toán</strong><span>${order.paymentMethod || 'Tiền mặt'}</span></div>
+          <div class="detail-row"><strong>Tổng tiền</strong><span>${formatMoney(order.total)}</span></div>
+        </div>
+        <div style="margin-top:14px;"><strong>Món đã đặt</strong></div>
+        <div class="detail-list" style="margin-top:8px;">${order.items.map(item => `<div class="detail-row"><span>${item.name} x${item.quantity}</span><span>${formatMoney(item.price * item.quantity)}</span></div>`).join('')}</div>`);
+      }
+
+      function updateBadge() {
+        const badge = document.getElementById('cartBadge');
+        const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
+        badge.textContent = totalQty;
+        badge.style.display = totalQty > 0 ? 'inline' : 'none';
+      }
+
+      renderSearch();
+      updateBadge();
+    }
+
+    function renderStoreUI() {
+      const storeEmail = currentUser.email;
+      if (getMenu(storeEmail).length === 0) saveMenu(storeEmail, SAMPLE_MENU.map(item => ({ ...item, storeEmail, storeName: currentUser.storeName })));
+      shell('Cửa hàng',
+              `<button class="nav-item active" data-page="info"><i class="fas fa-info-circle"></i> Thông tin</button>
+       <button class="nav-item" data-page="revenue"><i class="fas fa-chart-line"></i> Doanh thu</button>
+       <button class="nav-item" data-page="menu"><i class="fas fa-utensils"></i> Menu</button>
+       <button class="nav-item" data-page="orders"><i class="fas fa-receipt"></i> Đơn hàng</button>`,
+              `<div class="page-section active" id="infoPage"><div class="card"><div class="section-title">Thông tin cửa hàng</div><table class="info-table" id="storeInfoTable"></table></div></div>
+       <div class="page-section" id="revenuePage">
+         <div class="card">
+           <div class="section-title">Dashboard doanh thu</div>
+           <div class="toolbar">
+             <div class="form-group"><label>Từ ngày</label><input class="form-control" type="date" id="fromDate" value="${firstDayISO()}"></div>
+             <div class="form-group"><label>Đến ngày</label><input class="form-control" type="date" id="toDate" value="${todayISO()}"></div>
+             <button class="btn btn-primary" id="filterRevenue">Lọc</button>
+           </div>
+           <div class="metrics-grid" style="grid-template-columns:1fr;">
+             <div class="metric-card"><div class="metric-label">Doanh thu</div><div class="metric-value" id="metricRevenue">0đ</div></div>
+           </div>
+           <div class="orders-grid" id="revenueOrders"></div>
+         </div>
+       </div>
+       <div class="page-section" id="menuPage"><div class="card"><div class="section-title">Menu món ăn</div><div class="menu-grid" id="storeMenuGrid"></div></div></div>
+       <div class="page-section" id="ordersPage"><div class="card"><div class="section-title">Đơn hàng của quán</div><div class="orders-grid" id="storeOrders"></div></div></div>`,
+              'Thông tin cửa hàng');
+
+      window.pageHooks = { revenue: renderRevenue, menu: renderStoreMenu, orders: renderStoreOrders };
+      bindNavigation({ info:'Thông tin cửa hàng', revenue:'Doanh thu', menu:'Menu', orders:'Đơn hàng' });
+      document.getElementById('filterRevenue').addEventListener('click', renderRevenue);
+      document.addEventListener('click', storeClickHandler);
+
+      function renderInfo() {
+        document.getElementById('storeInfoTable').innerHTML = `<tr><td>Tên cửa hàng</td><td>${currentUser.storeName || ''}</td></tr><tr><td>Email</td><td>${currentUser.email}</td></tr><tr><td>SĐT</td><td>${currentUser.phone || ''}</td></tr><tr><td>Địa chỉ</td><td>${currentUser.address || ''}</td></tr>`;
+      }
+      function storeOrders() { return getOrders().filter(order => order.items.some(item => item.storeEmail === storeEmail) || order.storeEmail === storeEmail); }
+      function renderRevenue() {
+        const from = document.getElementById('fromDate').value || firstDayISO();
+        const to = document.getElementById('toDate').value || todayISO();
+        const orders = storeOrders().filter(order => (!order.orderDate || (order.orderDate >= from && order.orderDate <= to)));
+        const revenue = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+        document.getElementById('metricRevenue').textContent = formatMoney(revenue);
+        document.getElementById('revenueOrders').innerHTML = orders.length ? orders.map(orderCard).join('') : '<div class="empty-message">Không có đơn trong khoảng ngày</div>';
+      }
+      function renderStoreMenu() {
+        const menu = getMenu(storeEmail);
+        document.getElementById('storeMenuGrid').innerHTML = menu.map(food => `
+        <div class="menu-item-card">
+          <img class="food-img" src="${food.img || DEFAULT_IMG[0]}" alt="">
+          <div class="food-name">${food.name}</div>
+          <div class="food-desc">${food.category || ''}</div>
+          <div class="food-price">${formatMoney(food.price)}</div>
+          <div class="menu-actions">
+            <button class="btn btn-outline btn-sm edit-food" data-id="${food.id}"><i class="fas fa-pen"></i> Sửa</button>
+            <button class="btn btn-danger btn-sm delete-food" data-id="${food.id}"><i class="fas fa-trash"></i> Xóa</button>
+          </div>
+        </div>`).join('');
+      }
+      function renderStoreOrders() {
+        const orders = storeOrders().reverse();
+        document.getElementById('storeOrders').innerHTML = orders.length ? orders.map(orderCard).join('') : '<div class="empty-message">Không có đơn hàng</div>';
+      }
+      function orderCard(order) {
+        return `<div class="order-card"><div class="order-header"><span class="order-id">#${order.id}</span><span class="status-badge">${order.status}</span></div><div>${order.items.map(item => item.name + ' x' + item.quantity).join(', ')}</div><div class="total">${formatMoney(order.total)}</div><small>${order.customerName} - ${order.orderTime}</small></div>`;
+      }
+      function storeClickHandler(e) {
+        const editBtn = e.target.closest('.edit-food');
+        const deleteBtn = e.target.closest('.delete-food');
+        const confirmEditBtn = e.target.closest('#confirmEditFood');
+        if (editBtn) showEditFoodModal(Number(editBtn.dataset.id));
+        if (deleteBtn) deleteFood(Number(deleteBtn.dataset.id));
+        if (confirmEditBtn) confirmEditFood(Number(confirmEditBtn.dataset.id));
+      }
+      function showEditFoodModal(foodId) {
+        const food = getMenu(storeEmail).find(item => item.id === foodId);
+        if (!food) return;
+        modal('Sửa món ăn', `
+        <div class="form-group"><label>Tên món</label><input class="form-control" id="editFoodName" value="${escapeAttr(food.name)}"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Giá</label><input class="form-control" id="editFoodPrice" type="number" min="0" value="${Number(food.price || 0)}"></div>
+          <div class="form-group"><label>Loại món</label><input class="form-control" id="editFoodCategory" value="${escapeAttr(food.category)}"></div>
+        </div>
+        <div class="form-group"><label>Ảnh</label><input class="form-control" id="editFoodImg" value="${escapeAttr(food.img)}"></div>
+        <div class="form-group"><label>Mô tả</label><textarea class="form-control" id="editFoodDesc" rows="3">${escapeAttr(food.desc)}</textarea></div>
+        <button class="btn btn-primary btn-block" id="confirmEditFood" data-id="${food.id}"><i class="fas fa-check"></i> Xác nhận sửa</button>`);
+      }
+      function confirmEditFood(foodId) {
+        const menu = getMenu(storeEmail);
+        const food = menu.find(item => item.id === foodId);
+        if (!food) return;
+        const name = document.getElementById('editFoodName').value.trim();
+        const price = Number(document.getElementById('editFoodPrice').value || 0);
+        if (!name || price <= 0) return alert('Vui lòng nhập tên món và giá hợp lệ!');
+        food.name = name;
+        food.price = price;
+        food.category = document.getElementById('editFoodCategory').value.trim();
+        food.img = document.getElementById('editFoodImg').value.trim();
+        food.desc = document.getElementById('editFoodDesc').value.trim();
+        saveMenu(storeEmail, menu);
+        document.getElementById('modalBackdrop').classList.remove('active');
+        renderStoreMenu();
+      }
+      function deleteFood(foodId) {
+        const menu = getMenu(storeEmail);
+        const food = menu.find(item => item.id === foodId);
+        if (!food || !confirm('Xóa món "' + food.name + '"?')) return;
+        saveMenu(storeEmail, menu.filter(item => item.id !== foodId));
+        renderStoreMenu();
+      }
+      renderInfo();
+    }
+
+    function renderShipperUI() {
+      shell('Shipper',
+              `<button class="nav-item" data-page="profile"><i class="fas fa-user-circle"></i> Thông tin</button>
+       <button class="nav-item active" data-page="pending"><i class="fas fa-clipboard-list"></i> Đơn hiện tại</button>
+       <button class="nav-item" data-page="accepted"><i class="fas fa-truck"></i> Đơn nhận giao</button>
+       <button class="nav-item" data-page="history"><i class="fas fa-history"></i> Lịch sử đơn hàng</button>`,
+              `<div class="page-section" id="profilePage"><div class="card"><div class="section-title">Thông tin</div><table class="info-table"><tr><td>Tên</td><td>${currentUser.name || ''}</td></tr><tr><td>Email</td><td>${currentUser.email}</td></tr><tr><td>SĐT</td><td>${currentUser.phone || ''}</td></tr><tr><td>Phương tiện</td><td>${currentUser.vehicle || ''}</td></tr></table></div></div>
+       <div class="page-section active" id="pendingPage"><div class="orders-grid" id="pendingOrdersGrid"></div></div>
+       <div class="page-section" id="acceptedPage"><div class="orders-grid" id="acceptedOrdersGrid"></div></div>
+       <div class="page-section" id="historyPage"><div class="card"><div class="section-title">Lịch sử đơn hàng</div><div class="orders-grid" id="historyOrdersGrid"></div></div></div>`,
+              'Đơn hiện tại');
+      window.pageHooks = { pending: renderShipperOrders, accepted: renderShipperOrders, history: renderShipperOrders };
+      bindNavigation({ profile:'Thông tin', pending:'Đơn hiện tại', accepted:'Đơn nhận giao', history:'Lịch sử đơn hàng' });
+      document.addEventListener('click', e => {
+        const accept = e.target.closest('.accept-btn');
+        const done = e.target.closest('.done-btn');
+        if (accept) updateOrderStatus(accept.dataset.id, 'Đang giao');
+        if (done) updateOrderStatus(done.dataset.id, 'Đã giao');
+      });
+      function updateOrderStatus(id, status) {
+        const orders = getOrders();
+        const order = orders.find(o => o.id === id);
+        if (!order) return;
+        order.status = status;
+        order.shipperEmail = currentUser.email;
+        saveOrders(orders);
+        renderShipperOrders();
+      }
+      function renderShipperOrders() {
+        const orders = getOrders();
+        const pending = orders.filter(order => order.status === 'Chờ xác nhận');
+        const accepted = orders.filter(order => order.shipperEmail === currentUser.email && order.status === 'Đang giao');
+        const history = orders.filter(order => order.shipperEmail === currentUser.email && order.status === 'Đã giao').reverse();
+        document.getElementById('pendingOrdersGrid').innerHTML = pending.length ? pending.map(order => shipperCard(order, 'pending')).join('') : '<div class="empty-message">Không có đơn chờ</div>';
+        document.getElementById('acceptedOrdersGrid').innerHTML = accepted.length ? accepted.map(order => shipperCard(order, 'accepted')).join('') : '<div class="empty-message">Chưa có đơn đang giao</div>';
+        document.getElementById('historyOrdersGrid').innerHTML = history.length ? history.map(order => shipperCard(order, 'history')).join('') : '<div class="empty-message">Chưa có lịch sử đơn hàng</div>';
+      }
+      function shipperCard(order, type) {
+        const statusClass = order.status === 'Đang giao' ? 'shipping' : order.status === 'Đã giao' ? 'done' : '';
+        const action = type === 'pending'
+                ? `<button class="btn btn-primary accept-btn" data-id="${order.id}">Nhận giao</button>`
+                : type === 'accepted'
+                        ? `<button class="btn btn-primary done-btn" data-id="${order.id}">Hoàn thành</button>`
+                        : '';
+        return `<div class="order-card"><div class="order-header"><span class="order-id">#${order.id}</span><span class="status-badge ${statusClass}">${order.status}</span></div><div>${order.items.map(item => item.name + ' x' + item.quantity).join(', ')}</div><div class="muted">${order.customerAddress || ''}</div><div class="muted">${order.orderTime || ''}</div><div class="total">${formatMoney(order.total)}</div>${action}</div>`;
+      }
+      renderShipperOrders();
+    }
+
+    window.logout = function() {
+      localStorage.removeItem('currentUser');
+      window.location.href = 'login.html';
+    };
+
+    seedData();
+    if (currentUser.role === 'store') renderStoreUI();
+    else if (currentUser.role === 'shipper') renderShipperUI();
+    else renderCustomerUI();
+  })();

@@ -1,0 +1,20 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Roboto', Arial, sans-serif; background: #F5F5F5; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 24px; }
+.login-card { background: #FFF; border: 1px solid #DDD; border-radius: 8px; padding: 40px 30px; width: 460px; box-shadow: 0 4px 16px rgba(0,0,0,0.05); }
+.logo { font-size: 28px; font-weight: 700; color: #B8860B; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.subtitle { color: #666; font-size: 14px; text-align: center; margin-bottom: 20px; }
+.tab-switch { display: flex; border-bottom: 1px solid #DDD; margin-bottom: 24px; }
+.tab-btn { flex: 1; padding: 12px; font-weight: 600; font-size: 15px; border: none; background: transparent; color: #888; cursor: pointer; transition: 0.2s; border-bottom: 2px solid transparent; }
+.tab-btn.active { color: #B8860B; border-bottom: 2px solid #B8860B; }
+.form-panel { display: none; }
+.form-panel.active { display: block; }
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; color: #333; }
+.form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid #DDD; border-radius: 4px; font-size: 14px; font-family: inherit; transition: 0.2s; background: #FFF; }
+.form-group input:focus, .form-group select:focus { border-color: #B8860B; outline: none; }
+.btn-action { width: 100%; padding: 14px; background: #B8860B; border: none; color: white; font-weight: 700; font-size: 16px; border-radius: 4px; cursor: pointer; transition: background 0.2s; margin-top: 8px; }
+.btn-action:hover { background: #9E7609; }
+.msg { text-align: center; margin-top: 12px; font-size: 13px; display: none; }
+.msg.error { color: #C62828; }
+.msg.success { color: #2E7D32; }
+.back-link { display: block; text-align: center; margin-top: 16px; color: #B8860B; text-decoration: none; font-size: 14px; }

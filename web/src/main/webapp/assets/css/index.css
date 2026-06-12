@@ -1,0 +1,9 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Roboto', Arial, sans-serif; background: #F5F5F5; display: flex; justify-content: center; align-items: center; height: 100vh; }
+.role-container { background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 40px 30px; text-align: center; width: 400px; }
+.logo { font-size: 32px; font-weight: 700; color: #B8860B; margin-bottom: 10px; }
+.subtitle { color: #666; font-size: 16px; margin-bottom: 30px; }
+.role-buttons { display: flex; flex-direction: column; gap: 16px; }
+.role-btn { padding: 18px; font-size: 18px; font-weight: 700; border: 2px solid #DDD; border-radius: 8px; background: white; color: #333; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 12px; text-decoration: none; }
+.role-btn i { font-size: 22px; }
+.role-btn:hover { border-color: #B8860B; color: #B8860B; background: #FFF9E6; }
