@@ -29,3 +29,8 @@ config.properties
 # Database
 *.db
 *.sqlite
+
+GEMINI.md
+.cursor
+.junie
+Progress.txt

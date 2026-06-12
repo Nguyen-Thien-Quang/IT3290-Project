@@ -3,51 +3,27 @@ package dao.user;
 import context.DBContext;
 import model.user.CuaHang;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Lớp DAO xử lý các thao tác dữ liệu đối với bảng CUAHANG.
- * Quản lý thông tin doanh nghiệp, địa chỉ và cập nhật doanh thu của cửa hàng.
+ * Lớp DAO xử lý các thao tác dữ liệu liên quan đến Cửa hàng (Merchant).
  */
 public class CuaHangDAO {
 
     /**
-     * Đăng ký thông tin chi tiết cho một cửa hàng mới.
-     * Mặc định doanh thu khởi tạo sẽ là 0.
-     *
-     * @param ch Đối tượng {@link CuaHang} chứa thông tin cửa hàng cần lưu.
-     * @return true nếu đăng ký thành công, ngược lại trả về false.
+     * Truy vấn thông tin Cửa hàng dựa trên ID tài khoản.
+     * @param accountId ID của tài khoản liên kết (ID_TAIKHOAN).
+     * @return Đối tượng {@link CuaHang} hoặc null nếu không tìm thấy.
      */
-    public boolean registerCuaHang(CuaHang ch) {
-        String sql = "INSERT INTO CUAHANG (ID_TAIKHOAN, TENCUAHANG, DIACHI, SDT, DOANHTHU) VALUES (?, ?, ?, ?, 0)";
+    public CuaHang getCuaHangByAccountId(int accountId) {
+        String sql = "SELECT ID_CUAHANG, ID_TAIKHOAN, TENCUAHANG, DIACHI, SDT, DOANHTHU "
+                + "FROM CUAHANG WHERE ID_TAIKHOAN = ?";
 
         try (Connection conn = new DBContext().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, ch.getIdTaiKhoan());
-            ps.setNString(2, ch.getTenCuaHang());
-            ps.setNString(3, ch.getDiaChi());
-            ps.setString(4, ch.getSdt());
-
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    /**
-     * Tìm kiếm thông tin cửa hàng dựa trên ID tài khoản liên kết.
-     *
-     * @param accId ID tài khoản của chủ cửa hàng (khóa ngoại từ bảng TAIKHOAN).
-     * @return Đối tượng {@link CuaHang} nếu tìm thấy, ngược lại trả về null.
-     */
-    public CuaHang getByAccountId(int accId) {
-        String sql = "SELECT ID_CUAHANG, ID_TAIKHOAN, TENCUAHANG, DIACHI, SDT, DOANHTHU FROM CUAHANG WHERE ID_TAIKHOAN = ?";
-
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, accId);
+            ps.setInt(1, accountId);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -68,23 +44,72 @@ public class CuaHangDAO {
     }
 
     /**
-     * Cập nhật doanh thu tích lũy cho cửa hàng sau mỗi đơn hàng thành công.
-     *
-     * @param idCuaHang ID của cửa hàng cần cập nhật.
-     * @param amount Số tiền cộng thêm vào doanh thu hiện tại.
+     * Truy vấn thông tin chi tiết của một cửa hàng dựa trên ID.
+     * Phục vụ hiển thị trên trang Dashboard quản lý của chủ quán.
+     * @param storeId ID duy nhất của cửa hàng.
+     * @return Đối tượng {@link CuaHang} chứa thông tin chi tiết, hoặc null nếu không tìm thấy.
      */
-    public void updateRevenue(int idCuaHang, double amount) {
-        String sql = "UPDATE CUAHANG SET DOANHTHU = DOANHTHU + ? WHERE ID_CUAHANG = ?";
+    public CuaHang getStoreProfileById(int storeId) {
+        String sql = "SELECT ID_CUAHANG, ID_TAIKHOAN, TENCUAHANG, DIACHI, SDT, DOANHTHU "
+                + "FROM CUAHANG WHERE ID_CUAHANG = ?";
 
         try (Connection conn = new DBContext().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setDouble(1, amount);
-            ps.setInt(2, idCuaHang);
+            ps.setInt(1, storeId);
 
-            ps.executeUpdate();
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new CuaHang(
+                            rs.getInt("ID_CUAHANG"),
+                            rs.getInt("ID_TAIKHOAN"),
+                            rs.getNString("TENCUAHANG"),
+                            rs.getNString("DIACHI"),
+                            rs.getString("SDT"),
+                            rs.getDouble("DOANHTHU")
+                    );
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
+    }
+
+    /**
+     * Tìm kiếm danh sách cửa hàng dựa trên từ khóa (Tên cửa hàng).
+     * Hỗ trợ tìm kiếm tương đối (chứa từ khóa) và tiếng Việt có dấu.
+     * * @param keyword Từ khóa người dùng nhập vào ô tìm kiếm.
+     * @return Danh sách các đối tượng {@link CuaHang} khớp với từ khóa.
+     */
+    public List<CuaHang> searchCuaHangByKeyword(String keyword) {
+        List<CuaHang> list = new ArrayList<>();
+        // Sử dụng LIKE để tìm kiếm chuỗi con
+        String sql = "SELECT ID_CUAHANG, ID_TAIKHOAN, TENCUAHANG, DIACHI, SDT, DOANHTHU "
+                + "FROM CUAHANG WHERE TENCUAHANG LIKE ?";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            // Bao bọc từ khóa bằng ký tự % để tìm kiếm tương đối ở cả 2 đầu
+            // Ví dụ nhập "Mixue" -> truy vấn sẽ là "%Mixue%"
+            ps.setNString(1, "%" + keyword + "%");
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new CuaHang(
+                            rs.getInt("ID_CUAHANG"),
+                            rs.getInt("ID_TAIKHOAN"),
+                            rs.getNString("TENCUAHANG"),
+                            rs.getNString("DIACHI"),
+                            rs.getString("SDT"),
+                            rs.getDouble("DOANHTHU")
+                    ));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }

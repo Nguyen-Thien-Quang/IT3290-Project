@@ -107,7 +107,7 @@
         <div class="form-group"><label>Phương tiện</label><input type="text" id="regVehicle" placeholder="Xe máy" required></div>`;
     } else {
       html += `
-        <div class="form-group"><label>Tên cửa hàng</label><input type="text" id="regStoreName" required></div>
+        <div class="form-group"><label>Tên cửa hàng</label><input type="text" id="regName" required></div>
         <div class="form-group"><label>Địa chỉ</label><input type="text" id="regAddress" required></div>
         <div class="form-group"><label>Số điện thoại</label><input type="text" id="regPhone" required></div>`;
     }
@@ -133,13 +133,14 @@
   function getUsers(role) { return JSON.parse(localStorage.getItem('users_' + role) || '[]'); }
   function saveUsers(role, users) { localStorage.setItem('users_' + role, JSON.stringify(users)); }
 
-  document.getElementById('registerForm').addEventListener('submit', function(e) {
+  document.getElementById('registerForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const role = document.getElementById('registerRole').value;
     const errorEl = document.getElementById('registerError');
     const successEl = document.getElementById('registerSuccess');
     errorEl.style.display = 'none';
     successEl.style.display = 'none';
+    
     const email = document.getElementById('regEmail').value.trim();
     const password = document.getElementById('regPassword').value;
     if (!email || !password) {
@@ -199,20 +200,35 @@
     setTimeout(() => switchTab('login'), 800);
   });
 
-  document.getElementById('loginForm').addEventListener('submit', function(e) {
+  document.getElementById('loginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const role = document.getElementById('loginRole').value;
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
     const errorEl = document.getElementById('loginError');
     errorEl.style.display = 'none';
-    const users = getUsers(role);
-    const user = users.find(u => u.email === email && u.password === password);
-    if (user) {
-      localStorage.setItem('currentUser', JSON.stringify({ ...user, role }));
-      window.location.href = 'user_profile.html';
-    } else {
-      errorEl.textContent = 'Email hoặc mật khẩu sai!';
+
+    let endpoint = '';
+    if (role === 'customer') endpoint = 'api/customer/login';
+    else if (role === 'shipper') endpoint = 'api/shipper/login';
+    else if (role === 'store') endpoint = 'api/shop/login';
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const result = await response.json();
+      if (result.success) {
+        localStorage.setItem('currentUser', JSON.stringify({ email: result.email, role: result.role, name: result.name || result.email }));
+        window.location.href = 'user_profile.html';
+      } else {
+        errorEl.textContent = result.message || 'Email hoặc mật khẩu sai!';
+        errorEl.style.display = 'block';
+      }
+    } catch (err) {
+      errorEl.textContent = 'Lỗi kết nối server: ' + err.message;
       errorEl.style.display = 'block';
     }
   });

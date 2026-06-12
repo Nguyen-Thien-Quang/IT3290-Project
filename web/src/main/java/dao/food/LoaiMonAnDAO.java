@@ -7,18 +7,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Lớp DAO xử lý các thao tác dữ liệu liên quan đến bảng LOAIMONAN.
- * Cung cấp danh mục các loại món ăn để hiển thị trên giao diện người dùng.
+ * Lớp DAO xử lý các thao tác dữ liệu liên quan đến Danh mục/Loại món ăn.
  */
 public class LoaiMonAnDAO {
 
     /**
-     * Lấy danh sách tất cả các loại món ăn có trong hệ thống.
-     *
+     * Lấy toàn bộ danh sách loại món ăn (bao gồm cả hình ảnh) để hiển thị lên Trang chủ.
      * @return Danh sách các đối tượng {@link LoaiMonAn}.
      */
     public List<LoaiMonAn> getAll() {
         List<LoaiMonAn> list = new ArrayList<>();
+        // Đã bổ sung thêm cột IMG vào câu truy vấn
         String sql = "SELECT ID_LOAI, TENLOAI, IMG FROM LOAIMONAN";
 
         try (Connection conn = new DBContext().getConnection();
@@ -29,41 +28,12 @@ public class LoaiMonAnDAO {
                 list.add(new LoaiMonAn(
                         rs.getInt("ID_LOAI"),
                         rs.getNString("TENLOAI"),
-                        rs.getString("IMG")
+                        rs.getString("IMG") // Lấy đường dẫn/tên file ảnh từ database
                 ));
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return list;
-    }
-
-    /**
-     * Tìm kiếm loại món ăn cụ thể dựa trên mã định danh.
-     *
-     * @param id Mã của loại món ăn cần tìm.
-     * @return Đối tượng {@link LoaiMonAn} nếu tìm thấy, ngược lại trả về null.
-     */
-    public LoaiMonAn getById(int id) {
-        String sql = "SELECT ID_LOAI, TENLOAI, IMG FROM LOAIMONAN WHERE ID_LOAI = ?";
-
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, id);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return new LoaiMonAn(
-                            rs.getInt("ID_LOAI"),
-                            rs.getNString("TENLOAI"),
-                            rs.getString("IMG")
-                    );
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 }

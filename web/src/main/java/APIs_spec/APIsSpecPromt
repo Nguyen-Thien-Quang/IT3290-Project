@@ -1,0 +1,127 @@
+# API Specification Generation Prompt
+
+You are a senior backend architect.
+Analyze the provided Java Servlet web project and generate a complete API Specification document for frontend-backend integration.
+
+## Objective
+
+The generated specification must allow frontend developers to implement all API calls without reading backend source code.
+
+## For Each API Endpoint
+
+Generate the following information:
+
+### Basic Information
+
+* API Name
+* Description
+* HTTP Method
+* URL Path
+* example URL requet
+
+Example:
+
+Method: POST
+Path: /api/auth/login
+Description: Authenticate user and create session
+example /api/auth/login?role=CUSTOMER
+
+### Authentication
+
+Specify:
+
+* Required Role(s)
+* Session requirements
+
+Example:
+
+Login Required: Yes
+Role: CUSTOMER, ADMIN
+
+
+### Request Parameters
+
+#### Path Parameters
+
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+
+#### Query Parameters
+
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+
+#### Request Body
+
+Specify each field and provide example body request.
+
+Example:
+
+{
+"email": "[user@example.com](mailto:user@example.com)",
+"password": "123456"
+}
+
+
+| Field | Type | Required | Description |
+| ----- | ---- | -------- | ----------- |
+
+### Response
+
+Do the same as for request parameters.
+
+#### Success Response
+
+Provide:
+
+* HTTP Status Code
+* specify each field and provide example response.
+
+Example:
+
+HTTP 200 OK
+
+{
+"success": true,
+"data": {
+"id": 1,
+"username": "john"
+}
+}
+
+### Business Rules
+
+Document any validation rules.
+
+Examples:
+
+* Email must be unique.
+* Password length >= 6.
+* Food price must be positive.
+* User can only modify their own orders.
+
+## Global API Conventions
+
+Infer and document:
+
+example:
+### Content Type
+
+application/json
+
+### Character Encoding
+
+UTF-8
+
+### Session Handling
+
+Example:
+
+Cookie: JSESSIONID
+
+
+## Output Format
+
+Generate a clean Markdown document.
+If information is ambiguous, infer the most likely behavior from the code and explicitly mark it as
+
