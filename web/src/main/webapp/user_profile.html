@@ -25,385 +25,564 @@
     .main-wrapper { flex: 1; display: flex; flex-direction: column; background: #F8F8F8; overflow-y: auto; }
     .header { background: #FFFFFF; height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; border-bottom: 1px solid #DDD; position: sticky; top: 0; z-index: 10; }
     .page-title { font-size: 22px; font-weight: 700; color: #000; }
-    .header-right { display: flex; align-items: center; gap: 12px; position: relative; }
-    .header-avatar { width: 36px; height: 36px; border-radius: 4px; object-fit: cover; border: 1px solid #DDD; cursor: pointer; }
-    .header-name { font-weight: 600; font-size: 15px; color: #000; cursor: pointer; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .header-avatar { width: 36px; height: 36px; border-radius: 4px; object-fit: cover; border: 1px solid #DDD; }
+    .header-name { font-weight: 600; font-size: 15px; color: #000; }
     .content { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 24px; }
     .page-section { display: none; flex-direction: column; gap: 24px; }
     .page-section.active { display: flex; }
     .card { background: #FFFFFF; border: 1px solid #DDD; border-radius: 4px; padding: 20px; }
     .section-title { font-size: 18px; font-weight: 700; color: #000; padding-bottom: 12px; border-bottom: 1px solid #E5E5E5; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-    .btn { border: 1px solid #DDD; background: #FFFFFF; padding: 10px 18px; font-weight: 600; font-size: 14px; cursor: pointer; border-radius: 3px; display: inline-flex; align-items: center; gap: 6px; color: #333; transition: all 0.2s; }
+    .btn { border: 1px solid #DDD; background: #FFFFFF; padding: 10px 18px; font-weight: 600; font-size: 14px; cursor: pointer; border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: #333; transition: all 0.2s; }
     .btn-primary { background: #B8860B; border-color: #B8860B; color: white; }
     .btn-primary:hover { background: #9E7609; }
     .btn-danger { background: #C62828; border-color: #C62828; color: white; }
     .btn-danger:hover { background: #B71C1C; }
     .btn-outline:hover { background: #FDF3E0; border-color: #B8860B; color: #B8860B; }
     .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-block { width: 100%; }
+    .form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .form-group label { font-size: 13px; font-weight: 700; color: #333; }
+    .form-control { width: 100%; padding: 10px 12px; border: 1px solid #DDD; border-radius: 4px; font: inherit; background: #FFF; }
+    .form-control:focus { border-color: #B8860B; outline: none; }
+    .toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; margin-bottom: 16px; }
+    .toolbar .form-group { margin: 0; min-width: 180px; }
     .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-    .menu-item-card { border: 1px solid #DDD; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 6px; background: #FAFAFA; transition: all 0.2s; }
-    .menu-item-card:hover { border-color: #B8860B; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-    .menu-item-card .food-name { font-weight: 700; font-size: 15px; }
-    .menu-item-card .food-price { color: #B8860B; font-weight: 700; font-size: 16px; }
-    .menu-item-card .food-desc { font-size: 12px; color: #888; }
-    .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #EEE; }
-    .cart-summary { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 16px; border-top: 2px solid #333; }
-    .cart-total { font-size: 20px; font-weight: 700; color: #B8860B; }
-    .orders-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-    @media (max-width: 900px) { .orders-grid { grid-template-columns: 1fr; } .menu-grid { grid-template-columns: repeat(2, 1fr); } }
-    .order-card { background: #FFFFFF; border: 1px solid #DDD; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 8px; transition: all 0.2s; }
-    .order-card:hover { border-color: #B8860B; }
-    .order-card.accepted-highlight { border-left: 5px solid #B8860B; }
-    .order-header { display: flex; justify-content: space-between; align-items: center; }
+    .menu-item-card, .store-card, .order-card { background: #FFFFFF; border: 1px solid #DDD; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; transition: all 0.2s; }
+    .menu-item-card:hover, .store-card:hover, .order-card:hover { border-color: #B8860B; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .food-img, .store-img { width: 100%; height: 120px; border-radius: 4px; object-fit: cover; border: 1px solid #EEE; background: #F5F5F5; }
+    .food-name, .store-name { font-weight: 700; font-size: 15px; }
+    .food-price, .total, .cart-total, .metric-value { color: #B8860B; font-weight: 700; }
+    .food-desc, .muted { font-size: 12px; color: #777; }
+    .cart-item { display: grid; grid-template-columns: 1fr 112px 100px 42px; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid #EEE; }
+    .qty-input { width: 76px; padding: 8px; border: 1px solid #DDD; border-radius: 4px; }
+    .cart-summary { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; padding-top: 16px; border-top: 2px solid #333; }
+    .summary-line { display: flex; justify-content: space-between; align-items: center; }
+    .cart-total { font-size: 20px; }
+    .orders-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .order-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
     .order-id { font-weight: 700; font-size: 15px; }
     .status-badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 3px; background: #F0F0F0; color: #555; text-transform: uppercase; border: 1px solid #DDD; }
     .status-badge.shipping { background: #FFF3E0; color: #B8860B; border-color: #FFE0B2; }
-    .total { font-weight: 700; font-size: 16px; color: #B8860B; }
-    .empty-message { grid-column: span 2; background: white; border: 1px dashed #DDD; padding: 50px; text-align: center; color: #888; border-radius: 4px; }
-    .empty { text-align: center; color: #888; padding: 30px; }
+    .status-badge.done { background: #E8F5E9; color: #2E7D32; border-color: #C8E6C9; }
+    .empty-message, .empty { background: white; border: 1px dashed #DDD; padding: 32px; text-align: center; color: #888; border-radius: 4px; }
+    .empty-message { grid-column: 1 / -1; }
     .info-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
     .info-table td { padding: 12px 8px; border-bottom: 1px solid #EEEEEE; font-size: 14px; }
     .info-table td:first-child { font-weight: 600; color: #333; width: 30%; }
-    .order-tabs { display: flex; gap: 12px; margin-bottom: 16px; }
-    .order-tab { padding: 8px 20px; background: #FFF; border: 1px solid #DDD; border-radius: 4px; cursor: pointer; font-weight: 500; }
-    .order-tab.active { background: #B8860B; color: white; border-color: #B8860B; }
+    .order-tabs, .search-tabs { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .order-tab, .search-tab { padding: 8px 20px; background: #FFF; border: 1px solid #DDD; border-radius: 4px; cursor: pointer; font-weight: 500; }
+    .order-tab.active, .search-tab.active { background: #B8860B; color: white; border-color: #B8860B; }
+    .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 16px; }
+    .metric-card { border: 1px solid #DDD; background: #FAFAFA; border-radius: 4px; padding: 14px; }
+    .metric-label { color: #666; font-size: 13px; font-weight: 600; }
+    .metric-value { font-size: 22px; margin-top: 6px; }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+    .modal-backdrop.active { display: flex; }
+    .modal { width: min(560px, 100%); background: #FFF; border: 1px solid #DDD; border-radius: 6px; padding: 18px; box-shadow: 0 12px 32px rgba(0,0,0,0.18); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #EEE; padding-bottom: 10px; margin-bottom: 12px; }
+    .modal-title { font-size: 18px; font-weight: 700; }
+    .modal-close { width: 34px; height: 34px; border: 1px solid #DDD; background: #FFF; border-radius: 3px; cursor: pointer; }
+    .detail-list { display: flex; flex-direction: column; gap: 8px; }
+    .detail-row { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid #EEE; padding-bottom: 8px; }
+    @media (max-width: 900px) {
+      body { align-items: stretch; height: auto; min-height: 100vh; }
+      .app-layout { height: auto; min-height: 100vh; flex-direction: column; }
+      .sidebar { width: 100%; }
+      .nav-menu { display: grid; grid-template-columns: repeat(2, 1fr); }
+      .orders-grid, .metrics-grid, .form-row { grid-template-columns: 1fr; }
+      .cart-item { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 <div class="app-layout" id="appContainer"></div>
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Chi tiết</div>
+      <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
 
 <script>
-(function() {
-  const currentUserData = JSON.parse(localStorage.getItem('currentUser'));
-  if (!currentUserData) { window.location.href = 'login.html'; return; }
-  let role = currentUserData.role;
-  let profile = null;
+  (function() {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) { window.location.href = 'login.html'; return; }
 
-  async function fetchProfile() {
-    let endpoint = '';
-    if (role === 'Khách hàng' || role === 'customer') endpoint = 'api/customer/profile';
-    else if (role === 'Shipper' || role === 'shipper') endpoint = 'api/shipper/profile';
-    else if (role === 'Cửa hàng' || role === 'store') endpoint = 'api/shop/profile';
-    else return null;
+    const DEFAULT_IMG = [
+      'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=640&q=80',
+      'https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=640&q=80',
+      'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=640&q=80',
+      'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=640&q=80',
+      'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=640&q=80'
+    ];
 
-    try {
-      const response = await fetch(endpoint);
-      if (response.ok) {
-        return await response.json();
-      } else if (response.status === 401) {
-        window.location.href = 'login.html';
+    const SAMPLE_STORES = [
+      { email:'store@example.com', password:'123456', role:'store', storeName:'FoodShip Kitchen', address:'Cầu Giấy, Hà Nội', phone:'0900000001', logo:DEFAULT_IMG[0] },
+      { email:'kfc1@gmail.com', password:'kfc@001', role:'store', storeName:'KFC Nguyễn Tuân', address:'Nguyễn Tuân, Thanh Xuân, Hà Nội', phone:'0901111111', logo:DEFAULT_IMG[1] },
+      { email:'lotte@gmail.com', password:'lotte@003', role:'store', storeName:'Lotte Giải Phóng', address:'Giải Phóng, Hoàng Mai, Hà Nội', phone:'0903333333', logo:DEFAULT_IMG[2] }
+    ];
+
+    const SAMPLE_MENU = [
+      { id:1, name:'Cơm sườn nướng', price:40000, desc:'Cơm trắng, sườn nướng mật ong', category:'Cơm phần', img:DEFAULT_IMG[0] },
+      { id:2, name:'Cơm gà xối mỡ', price:45000, desc:'Gà chiên giòn, cơm chiên', category:'Cơm phần', img:DEFAULT_IMG[1] },
+      { id:3, name:'Bún bò Huế', price:50000, desc:'Bún bò cay đặc biệt', category:'Mì - Phở - Bún', img:DEFAULT_IMG[4] },
+      { id:4, name:'Phở bò tái', price:55000, desc:'Phở bò tái nạm', category:'Mì - Phở - Bún', img:DEFAULT_IMG[4] },
+      { id:5, name:'Bánh mì thịt nướng', price:25000, desc:'Bánh mì giòn, thịt nướng', category:'Đồ ăn nhanh', img:DEFAULT_IMG[2] },
+      { id:6, name:'Bún chả Hà Nội', price:45000, desc:'Bún chả nướng than hoa', category:'Mì - Phở - Bún', img:DEFAULT_IMG[0] },
+      { id:7, name:'Burger bò', price:75000, desc:'Burger bò, phô mai, rau tươi', category:'Burger', img:DEFAULT_IMG[2] },
+      { id:8, name:'Gà rán giòn cay', price:89000, desc:'Gà rán giòn cay 2 miếng', category:'Gà rán', img:DEFAULT_IMG[1] },
+      { id:9, name:'Pizza hải sản', price:129000, desc:'Pizza phô mai và hải sản', category:'Pizza', img:DEFAULT_IMG[3] },
+      { id:10, name:'Trà đào cam sả', price:35000, desc:'Trà đào mát lạnh', category:'Đồ uống', img:DEFAULT_IMG[4] }
+    ];
+
+    const appContainer = document.getElementById('appContainer');
+    let cart = JSON.parse(localStorage.getItem('cart_' + currentUser.email) || '[]');
+
+    function formatMoney(value) { return Number(value || 0).toLocaleString('vi-VN') + 'đ'; }
+    function todayISO() { return new Date().toISOString().split('T')[0]; }
+    function firstDayISO() {
+      const d = new Date();
+      return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
+    }
+    function generateId() { return 'DH' + Math.random().toString(36).slice(2, 8).toUpperCase(); }
+    function read(key, fallback) { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
+    function write(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+    function saveCart() { write('cart_' + currentUser.email, cart); }
+    function getOrders() { return read('allOrders', []); }
+    function saveOrders(orders) { write('allOrders', orders); }
+    function getStores() { return read('users_store', []); }
+    function getMenu(storeEmail) { return read('menu_' + storeEmail, []); }
+    function saveMenu(storeEmail, menu) { write('menu_' + storeEmail, menu); }
+
+    function seedData() {
+      const stores = getStores();
+      SAMPLE_STORES.forEach(store => {
+        if (!stores.some(s => s.email === store.email)) stores.push(store);
+        if (getMenu(store.email).length === 0) {
+          saveMenu(store.email, SAMPLE_MENU.map((item, idx) => ({
+            ...item,
+            id: idx + 1,
+            storeEmail: store.email,
+            storeName: store.storeName,
+            price: item.price + (idx % 3) * 5000
+          })));
+        }
+      });
+      write('users_store', stores);
+      if (!localStorage.getItem('allOrders')) write('allOrders', []);
+      if (!localStorage.getItem('vouchers_' + currentUser.email)) {
+        write('vouchers_' + currentUser.email, [
+          { id:'VC10', type:'-10%', label:'Giảm 10%', value:10 },
+          { id:'VC30', type:'-30%', label:'Giảm 30%', value:30 },
+          { id:'FREESHIP', type:'Freeship', label:'Freeship', value:0 }
+        ]);
       }
-    } catch (err) {
-      console.error('Failed to fetch profile', err);
-    }
-    return null;
-  }
-
-  async function init() {
-    profile = await fetchProfile();
-    if (!profile) {
-      // Fallback to localStorage if API fails or is not yet implemented
-      profile = currentUserData;
-    } else {
-      // Standardize role name from backend
-      if (profile.idKhachHang) role = 'customer';
-      else if (profile.idShipper) role = 'shipper';
-      else if (profile.idCuaHang) role = 'store';
     }
 
-    if (role === 'shipper') renderShipperUI();
-    else if (role === 'customer') renderCustomerUI();
-    else if (role === 'store') renderStoreUI();
-  }
-
-  // API real calls
-  async function apiGetOrders() {
-    try {
-      const response = await fetch('api/order/history');
-      const result = await response.json();
-      return result.success ? result.data : [];
-    } catch (err) {
-      console.error(err);
-      return [];
+    function modal(title, bodyHtml) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalBody').innerHTML = bodyHtml;
+      document.getElementById('modalBackdrop').classList.add('active');
     }
-  }
-
-  async function apiGetMenu(shopId) {
-    try {
-      const response = await fetch(`api/shop/foods?id=${shopId}`);
-      return await response.json();
-    } catch (err) {
-      console.error(err);
-      return [];
-    }
-  }
-
-  // Menu 20 món mẫu
-  const SAMPLE_MENU = [
-    { id:1, name:"Cơm sườn nướng", price:40000, desc:"Cơm trắng, sườn nướng mật ong" },
-    { id:2, name:"Cơm gà xối mỡ", price:45000, desc:"Gà chiên giòn, cơm chiên" },
-    { id:3, name:"Bún bò Huế", price:50000, desc:"Bún bò cay đặc biệt" },
-    { id:4, name:"Phở bò tái", price:55000, desc:"Phở bò tái nạm" },
-    { id:5, name:"Bánh mì thịt nướng", price:25000, desc:"Bánh mì giòn, thịt nướng" },
-    { id:6, name:"Cháo lòng", price:30000, desc:"Cháo trắng lòng heo" },
-    { id:7, name:"Bún chả Hà Nội", price:45000, desc:"Bún chả nướng than hoa" },
-    { id:8, name:"Mì Quảng", price:40000, desc:"Mì Quảng tôm thịt" },
-    { id:9, name:"Gỏi cuốn", price:35000, desc:"2 cuốn tôm thịt" },
-    { id:10, name:"Chả giò", price:30000, desc:"4 cuốn chả giò" },
-    { id:11, name:"Cơm tấm sườn", price:45000, desc:"Cơm tấm sườn bì chả" },
-    { id:12, name:"Hủ tiếu Nam Vang", price:50000, desc:"Hủ tiếu tôm thịt" },
-    { id:13, name:"Bún mắm", price:45000, desc:"Bún mắm đậm đà" },
-    { id:14, name:"Bò kho", price:55000, desc:"Bò kho bánh mì" },
-    { id:15, name:"Lẩu Thái", price:150000, desc:"Lẩu Thái hải sản" },
-    { id:16, name:"Trà đào", price:25000, desc:"Trà đào cam sả" },
-    { id:17, name:"Cà phê sữa đá", price:20000, desc:"Cà phê đậm vị" },
-    { id:18, name:"Sinh tố bơ", price:30000, desc:"Sinh tố bơ sữa" },
-    { id:19, name:"Nước cam", price:25000, desc:"Nước cam ép tươi" },
-    { id:20, name:"Coca Cola", price:15000, desc:"Lon 330ml" }
-  ];
-
-  if (!localStorage.getItem('allOrders')) localStorage.setItem('allOrders', JSON.stringify([]));
-
-  const appContainer = document.getElementById('appContainer');
-
-  // ===== SHIPPER =====
-  async function renderShipperUI() {
-    const user = profile;
-    appContainer.innerHTML = `
-      <aside class="sidebar">
-        <div class="logo-area"><i class="fas fa-utensils"></i> FoodShip</div>
-        <nav class="nav-menu">
-          <button class="nav-item" data-page="profile"><i class="fas fa-user-circle"></i> Thông tin</button>
-          <button class="nav-item active" data-page="pending"><i class="fas fa-clipboard-list"></i> Đơn hàng hiện tại</button>
-          <button class="nav-item" data-page="accepted"><i class="fas fa-truck"></i> Đơn hàng nhận giao</button>
-        </nav>
-        <div class="sidebar-footer"><span>${user.hoTen || user.name}</span><button class="btn btn-outline btn-sm" onclick="logout()">Đăng xuất</button></div>
-      </aside>
-      <div class="main-wrapper">
-        <header class="header"><span class="page-title" id="headerTitle">Đơn hàng hiện tại</span></header>
-        <div class="content">
-          <div class="page-section" id="profilePage"><div class="card"><div class="section-title">Thông tin</div><table class="info-table"><tr><td>Tên</td><td>${user.hoTen || user.name}</td></tr><tr><td>Email</td><td>${user.email}</td></tr><tr><td>SĐT</td><td>${user.sdt || user.phone}</td></tr><tr><td>Ngày sinh</td><td>${user.ngaySinh || ''}</td></tr></table></div></div>
-          <div class="page-section active" id="pendingPage"><div class="orders-grid" id="pendingOrdersGrid"></div></div>
-          <div class="page-section" id="acceptedPage"><div class="orders-grid" id="acceptedOrdersGrid"></div></div>
-        </div>
-      </div>`;
-    bindShipperEvents();
-  }
-
-  async function bindShipperEvents() {
-    let orders = await apiGetOrders();
-
-    function renderOrderLists() {
-      const pending = orders.filter(o => o.trangThai === 'Chờ xác nhận');
-      const accepted = orders.filter(o => o.trangThai === 'Đang giao');
-      document.getElementById('pendingOrdersGrid').innerHTML = pending.length ? pending.map(o => createOrderCard(o,'pending')).join('') : '<div class="empty-message">Không có đơn chờ</div>';
-      document.getElementById('acceptedOrdersGrid').innerHTML = accepted.length ? accepted.map(o => createOrderCard(o,'accepted')).join('') : '<div class="empty-message">Chưa có đơn đang giao</div>';
-    }
-
-    function createOrderCard(order, type) {
-      return `<div class="order-card ${type==='accepted'?'accepted-highlight':''}">
-        <div class="order-header"><span class="order-id">#${order.idDonHang}</span><span class="status-badge ${order.trangThai==='Đang giao'?'shipping':''}">${order.trangThai}</span></div>
-        <div class="total">${order.tongTien.toLocaleString('vi-VN')}đ</div>
-        <div class="btn-group">
-          ${type==='pending'?'<button class="btn btn-primary accept-btn" data-id="'+order.idDonHang+'">Nhận giao</button>':'<button class="btn btn-danger cancel-btn" data-id="'+order.idDonHang+'">Hủy</button>'}
-        </div>
-      </div>`;
-    }
-
-    document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', function() {
-      const p = this.dataset.page;
-      document.querySelectorAll('.page-section').forEach(pg => pg.classList.remove('active'));
-      document.getElementById(p==='profile'?'profilePage':p==='pending'?'pendingPage':'acceptedPage').classList.add('active');
-      document.getElementById('headerTitle').textContent = p==='profile'?'Thông tin':p==='pending'?'Đơn hàng hiện tại':'Đơn hàng nhận giao';
-      document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-      this.classList.add('active');
-    }));
-    renderOrderLists();
-  }
-
-  // ===== CUSTOMER =====
-  async function renderCustomerUI() {
-    const user = profile;
-    // For demo, we might need a default shopId to show menu
-    const shopId = 1; 
-    let menu = await apiGetMenu(shopId);
-
-    appContainer.innerHTML = `
-      <aside class="sidebar">
-        <div class="logo-area"><i class="fas fa-user"></i> Khách hàng</div>
-        <nav class="nav-menu">
-          <button class="nav-item active" data-page="menu"><i class="fas fa-utensils"></i> Menu</button>
-          <button class="nav-item" data-page="cart"><i class="fas fa-shopping-cart"></i> Giỏ hàng <span id="cartBadge" style="background:#B8860B;color:white;border-radius:50%;padding:2px 6px;font-size:11px;display:none;">0</span></button>
-          <button class="nav-item" data-page="orders"><i class="fas fa-history"></i> Đơn hàng của tôi</button>
-          <button class="nav-item" data-page="profile"><i class="fas fa-id-card"></i> Thông tin</button>
-        </nav>
-        <div class="sidebar-footer"><span>${user.hoTen || user.name}</span><button class="btn btn-outline btn-sm" onclick="logout()">Đăng xuất</button></div>
-      </aside>
-      <div class="main-wrapper">
-        <header class="header"><span class="page-title" id="headerTitle">Menu món ăn</span></header>
-        <div class="content">
-          <div class="page-section active" id="menuPage"><div class="card"><div class="section-title">Danh sách món ăn</div><div class="menu-grid" id="menuGrid"></div></div></div>
-          <div class="page-section" id="cartPage"><div class="card"><div class="section-title">Giỏ hàng</div><div id="cartItems"></div><div class="cart-summary"><span>Tổng:</span><span class="cart-total" id="cartTotal">0đ</span></div><button class="btn btn-primary" id="placeOrderBtn" style="width:100%;margin-top:12px;">Đặt hàng</button></div></div>
-          <div class="page-section" id="ordersPage"><div class="card"><div class="section-title">Lịch sử đơn hàng</div><div id="customerOrdersList"></div></div></div>
-          <div class="page-section" id="profilePage"><div class="card"><div class="section-title">Thông tin</div><table class="info-table"><tr><td>Họ tên</td><td>${user.hoTen || user.name}</td></tr><tr><td>Email</td><td>${user.email}</td></tr><tr><td>Ngày sinh</td><td>${user.ngaySinh || ''}</td></tr><tr><td>Địa chỉ</td><td>${user.diaChi || ''}</td></tr><tr><td>SĐT</td><td>${user.sdt || ''}</td></tr></table></div></div>
-        </div>
-      </div>`;
-    bindCustomerEvents(shopId, menu);
-  }
-
-  let cart = [];
-  async function bindCustomerEvents(shopId, initialMenu) {
-    function renderMenu(menuList) {
-      document.getElementById('menuGrid').innerHTML = menuList.map(food => `
-        <div class="menu-item-card">
-          <div class="food-name">${food.tenMon}</div>
-          <div class="food-price">${food.gia.toLocaleString('vi-VN')}đ</div>
-          <button class="btn btn-primary btn-sm" onclick="addToCart(${food.idMonAn})">Thêm vào giỏ</button>
-        </div>`).join('');
-    }
-
-    window.addToCart = async function(foodId) {
-      const menu = await apiGetMenu(shopId);
-      const food = menu.find(f=>f.idMonAn===foodId);
-      if (!food) return;
-      const existing = cart.find(i=>i.food.idMonAn===foodId);
-      if (existing) existing.quantity++; else cart.push({food, quantity:1});
-      updateBadge();
-    };
-
-    window.removeFromCart = function(foodId) { cart = cart.filter(i=>i.food.idMonAn!==foodId); updateBadge(); renderCart(); };
-
-    function updateBadge() {
-      const total = cart.reduce((s,i)=>s+i.quantity,0);
-      const badge = document.getElementById('cartBadge');
-      badge.textContent = total;
-      badge.style.display = total > 0 ? 'inline' : 'none';
-    }
-
-    function renderCart() {
-      const container = document.getElementById('cartItems');
-      if (cart.length===0) { container.innerHTML='<div class="empty">Giỏ hàng trống</div>'; document.getElementById('cartTotal').textContent='0đ'; return; }
-      container.innerHTML = cart.map(i=>`
-        <div class="cart-item">
-          <div><strong>${i.food.tenMon}</strong><br><small>${i.food.gia.toLocaleString('vi-VN')}đ x ${i.quantity}</small></div>
-          <div>${(i.food.gia*i.quantity).toLocaleString('vi-VN')}đ</div>
-          <button class="btn btn-danger btn-sm" onclick="removeFromCart(${i.food.idMonAn})"><i class="fas fa-trash"></i></button>
-        </div>`).join('');
-      document.getElementById('cartTotal').textContent = cart.reduce((s,i)=>s+i.food.gia*i.quantity,0).toLocaleString('vi-VN')+'đ';
-    }
-
-    document.getElementById('placeOrderBtn').addEventListener('click', async () => {
-      if (cart.length===0) return alert('Giỏ hàng trống!');
-      // TODO: Connect to api/cart order action
-      alert('Chức năng đặt hàng đang được kết nối với backend...');
+    document.getElementById('modalClose').addEventListener('click', () => document.getElementById('modalBackdrop').classList.remove('active'));
+    document.getElementById('modalBackdrop').addEventListener('click', e => {
+      if (e.target.id === 'modalBackdrop') document.getElementById('modalBackdrop').classList.remove('active');
     });
 
-    async function renderCustomerOrders() {
-      const orders = await apiGetOrders();
-      document.getElementById('customerOrdersList').innerHTML = orders.length ? orders.map(o=>`
-        <div class="order-card">
-          <div class="order-header"><span class="order-id">#${o.idDonHang}</span><span class="status-badge ${o.trangThai==='Đang giao'?'shipping':''}">${o.trangThai}</span></div>
-          <div class="total">${o.tongTien.toLocaleString('vi-VN')}đ</div><small>${o.thoigianDat}</small>
-        </div>`).join('') : '<div class="empty">Chưa có đơn hàng</div>';
-    }
-
-    document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', async function() {
-      const p = this.dataset.page;
-      document.querySelectorAll('.page-section').forEach(pg=>pg.classList.remove('active'));
-      document.getElementById(p==='menu'?'menuPage':p==='cart'?'cartPage':p==='orders'?'ordersPage':'profilePage').classList.add('active');
-      document.getElementById('headerTitle').textContent = {menu:'Menu',cart:'Giỏ hàng',orders:'Đơn hàng',profile:'Thông tin'}[p];
-      document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-      this.classList.add('active');
-      if (p==='menu') renderMenu(await apiGetMenu(shopId));
-      if (p==='cart') renderCart();
-      if (p==='orders') renderCustomerOrders();
-    }));
-
-    renderMenu(initialMenu);
-  }
-
-  // ===== STORE =====
-  async function renderStoreUI() {
-    const store = profile;
-    const shopId = store.idCuaHang;
-    let menu = await apiGetMenu(shopId);
-
-    appContainer.innerHTML = `
+    function shell(roleTitle, navHtml, bodyHtml, title) {
+      const displayName = currentUser.name || currentUser.storeName || currentUser.email;
+      const avatar = currentUser.avatar || currentUser.logo || DEFAULT_IMG[0];
+      appContainer.innerHTML = `
       <aside class="sidebar">
-        <div class="logo-area"><i class="fas fa-store"></i> Cửa hàng</div>
-        <nav class="nav-menu">
-          <button class="nav-item active" data-page="info"><i class="fas fa-info-circle"></i> Thông tin</button>
-          <button class="nav-item" data-page="revenue"><i class="fas fa-chart-line"></i> Doanh thu</button>
-          <button class="nav-item" data-page="menu"><i class="fas fa-utensils"></i> Menu</button>
-          <button class="nav-item" data-page="orders"><i class="fas fa-receipt"></i> Đơn hàng</button>
-        </nav>
-        <div class="sidebar-footer"><span>${store.tenCuaHang}</span><button class="btn btn-outline btn-sm" onclick="logout()">Đăng xuất</button></div>
+        <div class="logo-area"><i class="fas fa-utensils"></i> ${roleTitle}</div>
+        <nav class="nav-menu">${navHtml}</nav>
+        <div class="sidebar-footer">
+          <span>${displayName}</span>
+          <button class="btn btn-outline btn-sm" onclick="logout()">Đăng xuất</button>
+        </div>
       </aside>
       <div class="main-wrapper">
-        <header class="header"><span class="page-title" id="headerTitle">Thông tin cửa hàng</span></header>
-        <div class="content">
-          <div class="page-section active" id="infoPage"><div class="card"><div class="section-title">Thông tin</div><table class="info-table" id="storeInfoTable"></table></div></div>
-          <div class="page-section" id="revenuePage"><div class="card"><div class="section-title">Doanh thu</div><p style="color:#888;">Kết nối với api/shop/sales...</p></div></div>
-          <div class="page-section" id="menuPage">
-            <div class="card">
-              <div style="display:flex;justify-content:space-between;align-items:center;">
-                <div class="section-title" style="border:none;margin:0;">Menu</div>
-              </div>
-              <div class="menu-grid" id="storeMenuGrid" style="margin-top:16px;"></div>
-            </div>
-          </div>
-          <div class="page-section" id="ordersPage">
-            <div class="card">
-              <div id="orderContainer"></div>
-            </div>
-          </div>
-        </div>
+        <header class="header">
+          <span class="page-title" id="headerTitle">${title}</span>
+          <div class="header-right"><img src="${avatar}" class="header-avatar" alt=""><span class="header-name">${displayName}</span></div>
+        </header>
+        <div class="content">${bodyHtml}</div>
       </div>`;
-    bindStoreEvents(shopId);
-  }
-
-  async function bindStoreEvents(shopId) {
-    const store = profile;
-    document.getElementById('storeInfoTable').innerHTML = `<tr><td>Tên</td><td>${store.tenCuaHang}</td></tr><tr><td>Địa chỉ</td><td>${store.diaChi}</td></tr><tr><td>SĐT</td><td>${store.sdt}</td></tr><tr><td>Doanh thu</td><td>${store.doanhThu.toLocaleString('vi-VN')}đ</td></tr>`;
-
-    async function renderMenuGrid() {
-      const currentMenu = await apiGetMenu(shopId);
-      document.getElementById('storeMenuGrid').innerHTML = currentMenu.map(food => `
-        <div class="menu-item-card">
-          <div class="food-name">${food.tenMon}</div>
-          <div class="food-price">${food.gia.toLocaleString('vi-VN')}đ</div>
-        </div>`).join('');
     }
 
-    async function renderStoreOrders() {
-      const orders = await apiGetOrders();
-      document.getElementById('orderContainer').innerHTML = orders.length ? orders.map(o=>`
+    function bindNavigation(titleMap) {
+      document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', function() {
+        const page = this.dataset.page;
+        document.querySelectorAll('.page-section').forEach(section => section.classList.remove('active'));
+        document.getElementById(page + 'Page').classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        this.classList.add('active');
+        document.getElementById('headerTitle').textContent = titleMap[page] || page;
+        if (window.pageHooks && window.pageHooks[page]) window.pageHooks[page]();
+      }));
+    }
+
+    function renderCustomerUI() {
+      shell('Khách hàng',
+              `<button class="nav-item active" data-page="search"><i class="fas fa-search"></i> Tìm kiếm</button>
+       <button class="nav-item" data-page="cart"><i class="fas fa-shopping-cart"></i> Giỏ hàng <span id="cartBadge" style="background:#B8860B;color:white;border-radius:50%;padding:2px 6px;font-size:11px;display:none;">0</span></button>
+       <button class="nav-item" data-page="orders"><i class="fas fa-history"></i> Lịch sử đơn</button>
+       <button class="nav-item" data-page="profile"><i class="fas fa-id-card"></i> Thông tin</button>`,
+              `<div class="page-section active" id="searchPage">
+         <div class="card">
+           <div class="section-title"><i class="fas fa-search"></i> Tìm món / Tìm cửa hàng</div>
+           <div class="search-tabs"><button class="search-tab active" data-search-tab="food">Món ăn</button><button class="search-tab" data-search-tab="store">Cửa hàng</button></div>
+           <div class="toolbar">
+             <div class="form-group"><label>Từ khóa</label><input class="form-control" id="searchKeyword" placeholder="Nhập tên món hoặc cửa hàng"></div>
+             <div class="form-group" id="priceFilter"><label>Giá tối đa</label><input class="form-control" id="maxPrice" type="number" min="0" placeholder="0 = không giới hạn"></div>
+             <button class="btn btn-primary" id="searchBtn"><i class="fas fa-search"></i> Tìm</button>
+           </div>
+           <div class="menu-grid" id="searchResults"></div>
+         </div>
+       </div>
+       <div class="page-section" id="cartPage">
+         <div class="card">
+           <div class="section-title"><i class="fas fa-shopping-cart"></i> Danh sách món đã thêm</div>
+           <div id="cartItems"></div>
+           <div class="form-group" style="margin-top:16px;"><label>Voucher</label><select class="form-control" id="voucherSelect"></select></div>
+           <div class="cart-summary">
+             <div class="summary-line"><span>Tạm tính</span><span id="subtotalText">0đ</span></div>
+             <div class="summary-line"><span>Giảm giá</span><span id="discountText">0đ</span></div>
+             <div class="summary-line"><strong>Tổng</strong><span class="cart-total" id="cartTotal">0đ</span></div>
+           </div>
+           <button class="btn btn-primary btn-block" id="placeOrderBtn" style="margin-top:12px;"><i class="fas fa-check"></i> Đặt hàng</button>
+         </div>
+       </div>
+       <div class="page-section" id="ordersPage"><div class="card"><div class="section-title"><i class="fas fa-history"></i> Danh sách đơn đã đặt</div><div class="orders-grid" id="customerOrdersList"></div></div></div>
+       <div class="page-section" id="profilePage"><div class="card"><div class="section-title"><i class="fas fa-id-card"></i> Thông tin cá nhân</div><table class="info-table">
+         <tr><td>Avatar</td><td><img class="sidebar-avatar" src="${currentUser.avatar || DEFAULT_IMG[0]}" alt=""></td></tr>
+         <tr><td>Họ tên</td><td>${currentUser.name || ''}</td></tr><tr><td>Email</td><td>${currentUser.email}</td></tr><tr><td>SĐT</td><td>${currentUser.phone || ''}</td></tr><tr><td>Địa chỉ</td><td>${currentUser.address || ''}</td></tr>
+       </table></div></div>`,
+              'Tìm món / Tìm cửa hàng');
+
+      let searchTab = 'food';
+      window.pageHooks = { cart: renderCart, orders: renderCustomerOrders, search: renderSearch };
+      bindNavigation({ search:'Tìm món / Tìm cửa hàng', cart:'Giỏ hàng', orders:'Lịch sử đơn', profile:'Thông tin cá nhân' });
+
+      document.querySelectorAll('.search-tab').forEach(tab => tab.addEventListener('click', function() {
+        searchTab = this.dataset.searchTab;
+        document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        document.getElementById('priceFilter').style.display = searchTab === 'food' ? 'flex' : 'none';
+        renderSearch();
+      }));
+      document.getElementById('searchBtn').addEventListener('click', renderSearch);
+      document.getElementById('searchKeyword').addEventListener('input', renderSearch);
+      document.getElementById('maxPrice').addEventListener('input', renderSearch);
+      document.getElementById('voucherSelect').addEventListener('change', renderCart);
+      document.getElementById('placeOrderBtn').addEventListener('click', placeOrder);
+
+      function allFoods() {
+        return getStores().flatMap(store => getMenu(store.email).map(food => ({ ...food, storeEmail: store.email, storeName: store.storeName })));
+      }
+
+      function renderSearch() {
+        const keyword = document.getElementById('searchKeyword').value.trim().toLowerCase();
+        const maxPrice = Number(document.getElementById('maxPrice').value || 0);
+        const results = document.getElementById('searchResults');
+        if (searchTab === 'store') {
+          const stores = getStores().filter(s => !keyword || s.storeName.toLowerCase().includes(keyword) || (s.address || '').toLowerCase().includes(keyword));
+          results.innerHTML = stores.length ? stores.map(store => `
+          <div class="store-card">
+            <img class="store-img" src="${store.logo || DEFAULT_IMG[0]}" alt="">
+            <div class="store-name">${store.storeName}</div>
+            <div class="muted">${store.address || ''}</div>
+            <button class="btn btn-outline btn-sm view-store" data-email="${store.email}">Xem món</button>
+          </div>`).join('') : '<div class="empty-message">Không tìm thấy cửa hàng</div>';
+          return;
+        }
+        const foods = allFoods().filter(food => {
+          const matchText = !keyword || food.name.toLowerCase().includes(keyword) || food.storeName.toLowerCase().includes(keyword);
+          const matchPrice = maxPrice <= 0 || Number(food.price) <= maxPrice;
+          return matchText && matchPrice;
+        });
+        results.innerHTML = foods.length ? foods.map(food => foodCard(food)).join('') : '<div class="empty-message">Không tìm thấy món ăn</div>';
+      }
+
+      function foodCard(food) {
+        return `<div class="menu-item-card">
+        <img class="food-img" src="${food.img || DEFAULT_IMG[0]}" alt="">
+        <div class="food-name">${food.name}</div>
+        <div class="food-desc">${food.category || 'Món ăn'} · ${food.storeName}</div>
+        <div class="food-price">${formatMoney(food.price)}</div>
+        <button class="btn btn-outline btn-sm food-detail" data-store="${food.storeEmail}" data-id="${food.id}"><i class="fas fa-circle-info"></i> Chi tiết</button>
+        <button class="btn btn-primary btn-sm add-cart" data-store="${food.storeEmail}" data-id="${food.id}"><i class="fas fa-plus"></i> Thêm</button>
+      </div>`;
+      }
+
+      document.addEventListener('click', customerClickHandler);
+      function customerClickHandler(e) {
+        const addBtn = e.target.closest('.add-cart');
+        const detailBtn = e.target.closest('.food-detail');
+        const storeBtn = e.target.closest('.view-store');
+        const orderBtn = e.target.closest('.order-detail');
+        if (addBtn) addToCart(addBtn.dataset.store, Number(addBtn.dataset.id));
+        if (detailBtn) showFoodDetail(detailBtn.dataset.store, Number(detailBtn.dataset.id));
+        if (storeBtn) {
+          searchTab = 'food';
+          document.querySelector('[data-search-tab="food"]').click();
+          document.getElementById('searchKeyword').value = getStores().find(s => s.email === storeBtn.dataset.email).storeName;
+          renderSearch();
+        }
+        if (orderBtn) showOrderDetail(orderBtn.dataset.id);
+      }
+
+      function addToCart(storeEmail, foodId) {
+        const store = getStores().find(s => s.email === storeEmail);
+        const food = getMenu(storeEmail).find(f => f.id === foodId);
+        if (!food || !store) return;
+        const existing = cart.find(item => item.foodId === foodId && item.storeEmail === storeEmail);
+        if (existing) existing.quantity += 1;
+        else cart.push({ foodId, storeEmail, name: food.name, price: food.price, quantity: 1, storeName: store.storeName, img: food.img, category: food.category });
+        saveCart();
+        updateBadge();
+      }
+
+      function showFoodDetail(storeEmail, foodId) {
+        const food = getMenu(storeEmail).find(f => f.id === foodId);
+        const store = getStores().find(s => s.email === storeEmail);
+        if (!food || !store) return;
+        modal(food.name, `<img class="food-img" style="height:220px;margin-bottom:12px;" src="${food.img || DEFAULT_IMG[0]}" alt="">
+        <div class="detail-list">
+          <div class="detail-row"><strong>Loại món</strong><span>${food.category || ''}</span></div>
+          <div class="detail-row"><strong>Cửa hàng</strong><span>${store.storeName}</span></div>
+          <div class="detail-row"><strong>Giá</strong><span>${formatMoney(food.price)}</span></div>
+          <div class="detail-row"><strong>Mô tả</strong><span>${food.desc || ''}</span></div>
+        </div>`);
+      }
+
+      function renderVoucherOptions() {
+        const vouchers = read('vouchers_' + currentUser.email, []);
+        const select = document.getElementById('voucherSelect');
+        const selected = select.value;
+        select.innerHTML = '<option value="">Không dùng voucher</option>' + vouchers.map(v => `<option value="${v.id}">${v.label}</option>`).join('');
+        select.value = selected;
+      }
+
+      function renderCart() {
+        renderVoucherOptions();
+        const container = document.getElementById('cartItems');
+        if (cart.length === 0) {
+          container.innerHTML = '<div class="empty">Giỏ hàng trống</div>';
+        } else {
+          container.innerHTML = cart.map((item, idx) => `
+          <div class="cart-item">
+            <div><strong>${item.name}</strong><br><small>${formatMoney(item.price)} · ${item.storeName}</small></div>
+            <input class="qty-input cart-qty" type="number" min="1" value="${item.quantity}" data-index="${idx}">
+            <div>${formatMoney(item.price * item.quantity)}</div>
+            <button class="btn btn-danger btn-sm remove-cart" data-index="${idx}"><i class="fas fa-trash"></i></button>
+          </div>`).join('');
+        }
+        document.querySelectorAll('.cart-qty').forEach(input => input.addEventListener('change', function() {
+          cart[Number(this.dataset.index)].quantity = Math.max(1, Number(this.value || 1));
+          saveCart();
+          renderCart();
+          updateBadge();
+        }));
+        document.querySelectorAll('.remove-cart').forEach(btn => btn.addEventListener('click', function() {
+          cart.splice(Number(this.dataset.index), 1);
+          saveCart();
+          renderCart();
+          updateBadge();
+        }));
+        const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const voucher = read('vouchers_' + currentUser.email, []).find(v => v.id === document.getElementById('voucherSelect').value);
+        const discount = voucher && voucher.value ? Math.round(subtotal * voucher.value / 100) : 0;
+        document.getElementById('subtotalText').textContent = formatMoney(subtotal);
+        document.getElementById('discountText').textContent = formatMoney(discount);
+        document.getElementById('cartTotal').textContent = formatMoney(subtotal - discount);
+      }
+
+      function placeOrder() {
+        if (cart.length === 0) return alert('Giỏ hàng trống!');
+        const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const voucher = read('vouchers_' + currentUser.email, []).find(v => v.id === document.getElementById('voucherSelect').value);
+        const discount = voucher && voucher.value ? Math.round(subtotal * voucher.value / 100) : 0;
+        const order = {
+          id: generateId(),
+          customerName: currentUser.name || currentUser.email,
+          customerEmail: currentUser.email,
+          customerAddress: currentUser.address || '',
+          items: cart.map(item => ({ ...item })),
+          voucher: voucher ? voucher.label : '',
+          discount,
+          subtotal,
+          total: subtotal - discount,
+          status: 'Chờ xác nhận',
+          orderTime: new Date().toLocaleString('vi-VN'),
+          orderDate: todayISO(),
+          storeEmail: cart[0].storeEmail
+        };
+        const orders = getOrders();
+        orders.push(order);
+        saveOrders(orders);
+        cart = [];
+        saveCart();
+        updateBadge();
+        renderCart();
+        alert('Đặt hàng thành công!');
+        document.querySelector('[data-page="orders"]').click();
+      }
+
+      function renderCustomerOrders() {
+        const orders = getOrders().filter(order => order.customerEmail === currentUser.email).reverse();
+        document.getElementById('customerOrdersList').innerHTML = orders.length ? orders.map(order => `
         <div class="order-card">
-          <div class="order-header"><span class="order-id">#${o.idDonHang}</span><span class="status-badge">${o.trangThai}</span></div>
-          <div class="total">${o.tongTien.toLocaleString('vi-VN')}đ</div>
-          <small>${o.thoigianDat}</small>
-        </div>`).join('') : '<div class="empty">Không có đơn</div>';
+          <div class="order-header"><span class="order-id">#${order.id}</span><span class="status-badge ${order.status === 'Đang giao' ? 'shipping' : order.status === 'Đã giao' ? 'done' : ''}">${order.status}</span></div>
+          <div class="muted">${order.orderTime}</div>
+          <div>${order.items.map(item => item.name + ' x' + item.quantity).join(', ')}</div>
+          <div class="total">${formatMoney(order.total)}</div>
+          <button class="btn btn-outline btn-sm order-detail" data-id="${order.id}">Xem chi tiết</button>
+        </div>`).join('') : '<div class="empty-message">Chưa có đơn hàng</div>';
+      }
+
+      function showOrderDetail(orderId) {
+        const order = getOrders().find(o => o.id === orderId);
+        if (!order) return;
+        modal('Đơn hàng #' + order.id, `
+        <div class="detail-list">
+          <div class="detail-row"><strong>Ngày đặt</strong><span>${order.orderTime}</span></div>
+          <div class="detail-row"><strong>Trạng thái</strong><span>${order.status}</span></div>
+          <div class="detail-row"><strong>Địa chỉ giao</strong><span>${order.customerAddress || ''}</span></div>
+          <div class="detail-row"><strong>Voucher</strong><span>${order.voucher || 'Không dùng'}</span></div>
+          <div class="detail-row"><strong>Tổng tiền</strong><span>${formatMoney(order.total)}</span></div>
+        </div>
+        <div style="margin-top:14px;"><strong>Món đã đặt</strong></div>
+        <div class="detail-list" style="margin-top:8px;">${order.items.map(item => `<div class="detail-row"><span>${item.name} x${item.quantity}</span><span>${formatMoney(item.price * item.quantity)}</span></div>`).join('')}</div>`);
+      }
+
+      function updateBadge() {
+        const badge = document.getElementById('cartBadge');
+        const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
+        badge.textContent = totalQty;
+        badge.style.display = totalQty > 0 ? 'inline' : 'none';
+      }
+
+      renderSearch();
+      updateBadge();
     }
 
-    document.querySelectorAll('.nav-item').forEach(item=>item.addEventListener('click', async function(){
-      const p=this.dataset.page;
-      document.querySelectorAll('.page-section').forEach(pg=>pg.classList.remove('active'));
-      document.getElementById(p==='info'?'infoPage':p==='revenue'?'revenuePage':p==='menu'?'menuPage':'ordersPage').classList.add('active');
-      document.getElementById('headerTitle').textContent = {info:'Thông tin',revenue:'Doanh thu',menu:'Menu',orders:'Đơn hàng'}[p];
-      document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-      this.classList.add('active');
-      if (p==='menu') renderMenuGrid();
-      if (p==='orders') renderStoreOrders();
-    }));
+    function renderStoreUI() {
+      const storeEmail = currentUser.email;
+      if (getMenu(storeEmail).length === 0) saveMenu(storeEmail, SAMPLE_MENU.map(item => ({ ...item, storeEmail, storeName: currentUser.storeName })));
+      shell('Cửa hàng',
+              `<button class="nav-item active" data-page="info"><i class="fas fa-info-circle"></i> Thông tin</button>
+       <button class="nav-item" data-page="revenue"><i class="fas fa-chart-line"></i> Doanh thu</button>
+       <button class="nav-item" data-page="menu"><i class="fas fa-utensils"></i> Menu</button>
+       <button class="nav-item" data-page="orders"><i class="fas fa-receipt"></i> Đơn hàng</button>`,
+              `<div class="page-section active" id="infoPage"><div class="card"><div class="section-title">Thông tin cửa hàng</div><table class="info-table" id="storeInfoTable"></table></div></div>
+       <div class="page-section" id="revenuePage">
+         <div class="card">
+           <div class="section-title">Dashboard doanh thu</div>
+           <div class="toolbar">
+             <div class="form-group"><label>Từ ngày</label><input class="form-control" type="date" id="fromDate" value="${firstDayISO()}"></div>
+             <div class="form-group"><label>Đến ngày</label><input class="form-control" type="date" id="toDate" value="${todayISO()}"></div>
+             <button class="btn btn-primary" id="filterRevenue">Lọc</button>
+           </div>
+           <div class="metrics-grid">
+             <div class="metric-card"><div class="metric-label">Tổng đơn</div><div class="metric-value" id="metricOrders">0</div></div>
+             <div class="metric-card"><div class="metric-label">Doanh thu</div><div class="metric-value" id="metricRevenue">0đ</div></div>
+             <div class="metric-card"><div class="metric-label">Đơn đã giao</div><div class="metric-value" id="metricDone">0</div></div>
+           </div>
+           <div class="orders-grid" id="revenueOrders"></div>
+         </div>
+       </div>
+       <div class="page-section" id="menuPage"><div class="card"><div class="section-title">Menu món ăn</div><div class="menu-grid" id="storeMenuGrid"></div></div></div>
+       <div class="page-section" id="ordersPage"><div class="card"><div class="section-title">Đơn hàng của quán</div><div class="orders-grid" id="storeOrders"></div></div></div>`,
+              'Thông tin cửa hàng');
 
-    renderMenuGrid();
-    renderStoreOrders();
-  }
+      window.pageHooks = { revenue: renderRevenue, menu: renderStoreMenu, orders: renderStoreOrders };
+      bindNavigation({ info:'Thông tin cửa hàng', revenue:'Doanh thu', menu:'Menu', orders:'Đơn hàng' });
+      document.getElementById('filterRevenue').addEventListener('click', renderRevenue);
 
-  window.logout = function() { localStorage.removeItem('currentUser'); window.location.href='login.html'; };
+      function renderInfo() {
+        document.getElementById('storeInfoTable').innerHTML = `<tr><td>Tên cửa hàng</td><td>${currentUser.storeName || ''}</td></tr><tr><td>Email</td><td>${currentUser.email}</td></tr><tr><td>SĐT</td><td>${currentUser.phone || ''}</td></tr><tr><td>Địa chỉ</td><td>${currentUser.address || ''}</td></tr>`;
+      }
+      function storeOrders() { return getOrders().filter(order => order.items.some(item => item.storeEmail === storeEmail) || order.storeEmail === storeEmail); }
+      function renderRevenue() {
+        const from = document.getElementById('fromDate').value || firstDayISO();
+        const to = document.getElementById('toDate').value || todayISO();
+        const orders = storeOrders().filter(order => (!order.orderDate || (order.orderDate >= from && order.orderDate <= to)));
+        const revenue = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+        document.getElementById('metricOrders').textContent = orders.length;
+        document.getElementById('metricRevenue').textContent = formatMoney(revenue);
+        document.getElementById('metricDone').textContent = orders.filter(order => order.status === 'Đã giao').length;
+        document.getElementById('revenueOrders').innerHTML = orders.length ? orders.map(orderCard).join('') : '<div class="empty-message">Không có đơn trong khoảng ngày</div>';
+      }
+      function renderStoreMenu() {
+        const menu = getMenu(storeEmail);
+        document.getElementById('storeMenuGrid').innerHTML = menu.map(food => `
+        <div class="menu-item-card"><img class="food-img" src="${food.img || DEFAULT_IMG[0]}" alt=""><div class="food-name">${food.name}</div><div class="food-desc">${food.category || ''}</div><div class="food-price">${formatMoney(food.price)}</div></div>`).join('');
+      }
+      function renderStoreOrders() {
+        const orders = storeOrders().reverse();
+        document.getElementById('storeOrders').innerHTML = orders.length ? orders.map(orderCard).join('') : '<div class="empty-message">Không có đơn hàng</div>';
+      }
+      function orderCard(order) {
+        return `<div class="order-card"><div class="order-header"><span class="order-id">#${order.id}</span><span class="status-badge">${order.status}</span></div><div>${order.items.map(item => item.name + ' x' + item.quantity).join(', ')}</div><div class="total">${formatMoney(order.total)}</div><small>${order.customerName} - ${order.orderTime}</small></div>`;
+      }
+      renderInfo();
+    }
 
-  init();
-})();
+    function renderShipperUI() {
+      shell('Shipper',
+              `<button class="nav-item" data-page="profile"><i class="fas fa-user-circle"></i> Thông tin</button>
+       <button class="nav-item active" data-page="pending"><i class="fas fa-clipboard-list"></i> Đơn hiện tại</button>
+       <button class="nav-item" data-page="accepted"><i class="fas fa-truck"></i> Đơn nhận giao</button>`,
+              `<div class="page-section" id="profilePage"><div class="card"><div class="section-title">Thông tin</div><table class="info-table"><tr><td>Tên</td><td>${currentUser.name || ''}</td></tr><tr><td>Email</td><td>${currentUser.email}</td></tr><tr><td>SĐT</td><td>${currentUser.phone || ''}</td></tr><tr><td>Phương tiện</td><td>${currentUser.vehicle || ''}</td></tr></table></div></div>
+       <div class="page-section active" id="pendingPage"><div class="orders-grid" id="pendingOrdersGrid"></div></div>
+       <div class="page-section" id="acceptedPage"><div class="orders-grid" id="acceptedOrdersGrid"></div></div>`,
+              'Đơn hiện tại');
+      window.pageHooks = { pending: renderShipperOrders, accepted: renderShipperOrders };
+      bindNavigation({ profile:'Thông tin', pending:'Đơn hiện tại', accepted:'Đơn nhận giao' });
+      document.addEventListener('click', e => {
+        const accept = e.target.closest('.accept-btn');
+        const done = e.target.closest('.done-btn');
+        if (accept) updateOrderStatus(accept.dataset.id, 'Đang giao');
+        if (done) updateOrderStatus(done.dataset.id, 'Đã giao');
+      });
+      function updateOrderStatus(id, status) {
+        const orders = getOrders();
+        const order = orders.find(o => o.id === id);
+        if (!order) return;
+        order.status = status;
+        order.shipperEmail = currentUser.email;
+        saveOrders(orders);
+        renderShipperOrders();
+      }
+      function renderShipperOrders() {
+        const orders = getOrders();
+        const pending = orders.filter(order => order.status === 'Chờ xác nhận');
+        const accepted = orders.filter(order => order.shipperEmail === currentUser.email && order.status === 'Đang giao');
+        document.getElementById('pendingOrdersGrid').innerHTML = pending.length ? pending.map(order => shipperCard(order, 'pending')).join('') : '<div class="empty-message">Không có đơn chờ</div>';
+        document.getElementById('acceptedOrdersGrid').innerHTML = accepted.length ? accepted.map(order => shipperCard(order, 'accepted')).join('') : '<div class="empty-message">Chưa có đơn đang giao</div>';
+      }
+      function shipperCard(order, type) {
+        return `<div class="order-card"><div class="order-header"><span class="order-id">#${order.id}</span><span class="status-badge ${order.status === 'Đang giao' ? 'shipping' : ''}">${order.status}</span></div><div>${order.items.map(item => item.name + ' x' + item.quantity).join(', ')}</div><div class="muted">${order.customerAddress || ''}</div><div class="total">${formatMoney(order.total)}</div>${type === 'pending' ? `<button class="btn btn-primary accept-btn" data-id="${order.id}">Nhận giao</button>` : `<button class="btn btn-primary done-btn" data-id="${order.id}">Hoàn thành</button>`}</div>`;
+      }
+      renderShipperOrders();
+    }
+
+    window.logout = function() {
+      localStorage.removeItem('currentUser');
+      window.location.href = 'login.html';
+    };
+
+    seedData();
+    if (currentUser.role === 'store') renderStoreUI();
+    else if (currentUser.role === 'shipper') renderShipperUI();
+    else renderCustomerUI();
+  })();
 </script>
 </body>
 </html>
