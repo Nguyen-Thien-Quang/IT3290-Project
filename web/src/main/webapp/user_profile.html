@@ -78,6 +78,8 @@
     .metric-card { border: 1px solid #DDD; background: #FAFAFA; border-radius: 4px; padding: 14px; }
     .metric-label { color: #666; font-size: 13px; font-weight: 600; }
     .metric-value { font-size: 22px; margin-top: 6px; }
+    .menu-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+    .menu-actions .btn { flex: 1; min-width: 86px; }
     .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
     .modal-backdrop.active { display: flex; }
     .modal { width: min(560px, 100%); background: #FFF; border: 1px solid #DDD; border-radius: 6px; padding: 18px; box-shadow: 0 12px 32px rgba(0,0,0,0.18); }
@@ -158,6 +160,9 @@
   function getStores() { return read('users_store', []); }
   function getMenu(storeEmail) { return read('menu_' + storeEmail, []); }
   function saveMenu(storeEmail, menu) { write('menu_' + storeEmail, menu); }
+  function escapeAttr(value) {
+    return String(value || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
 
   function seedData() {
     const stores = getStores();
@@ -250,6 +255,7 @@
            <div class="section-title"><i class="fas fa-shopping-cart"></i> Danh sách món đã thêm</div>
            <div id="cartItems"></div>
            <div class="form-group" style="margin-top:16px;"><label>Voucher</label><select class="form-control" id="voucherSelect"></select></div>
+           <div class="form-group"><label>Phương thức thanh toán</label><select class="form-control" id="paymentMethodSelect"><option value="Tiền mặt">Tiền mặt</option><option value="Chuyển khoản">Chuyển khoản</option><option value="Ví điện tử">Ví điện tử</option></select></div>
            <div class="cart-summary">
              <div class="summary-line"><span>Tạm tính</span><span id="subtotalText">0đ</span></div>
              <div class="summary-line"><span>Giảm giá</span><span id="discountText">0đ</span></div>
@@ -280,6 +286,7 @@
     document.getElementById('searchKeyword').addEventListener('input', renderSearch);
     document.getElementById('maxPrice').addEventListener('input', renderSearch);
     document.getElementById('voucherSelect').addEventListener('change', renderCart);
+    document.getElementById('paymentMethodSelect').addEventListener('change', renderCart);
     document.getElementById('placeOrderBtn').addEventListener('click', placeOrder);
 
     function allFoods() {
@@ -408,6 +415,7 @@
       const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
       const voucher = read('vouchers_' + currentUser.email, []).find(v => v.id === document.getElementById('voucherSelect').value);
       const discount = voucher && voucher.value ? Math.round(subtotal * voucher.value / 100) : 0;
+      const paymentMethod = document.getElementById('paymentMethodSelect').value;
       const order = {
         id: generateId(),
         customerName: currentUser.name || currentUser.email,
@@ -415,6 +423,7 @@
         customerAddress: currentUser.address || '',
         items: cart.map(item => ({ ...item })),
         voucher: voucher ? voucher.label : '',
+        paymentMethod,
         discount,
         subtotal,
         total: subtotal - discount,
@@ -455,6 +464,7 @@
           <div class="detail-row"><strong>Trạng thái</strong><span>${order.status}</span></div>
           <div class="detail-row"><strong>Địa chỉ giao</strong><span>${order.customerAddress || ''}</span></div>
           <div class="detail-row"><strong>Voucher</strong><span>${order.voucher || 'Không dùng'}</span></div>
+          <div class="detail-row"><strong>Thanh toán</strong><span>${order.paymentMethod || 'Tiền mặt'}</span></div>
           <div class="detail-row"><strong>Tổng tiền</strong><span>${formatMoney(order.total)}</span></div>
         </div>
         <div style="margin-top:14px;"><strong>Món đã đặt</strong></div>
@@ -489,10 +499,8 @@
              <div class="form-group"><label>Đến ngày</label><input class="form-control" type="date" id="toDate" value="${todayISO()}"></div>
              <button class="btn btn-primary" id="filterRevenue">Lọc</button>
            </div>
-           <div class="metrics-grid">
-             <div class="metric-card"><div class="metric-label">Tổng đơn</div><div class="metric-value" id="metricOrders">0</div></div>
+           <div class="metrics-grid" style="grid-template-columns:1fr;">
              <div class="metric-card"><div class="metric-label">Doanh thu</div><div class="metric-value" id="metricRevenue">0đ</div></div>
-             <div class="metric-card"><div class="metric-label">Đơn đã giao</div><div class="metric-value" id="metricDone">0</div></div>
            </div>
            <div class="orders-grid" id="revenueOrders"></div>
          </div>
@@ -504,6 +512,7 @@
     window.pageHooks = { revenue: renderRevenue, menu: renderStoreMenu, orders: renderStoreOrders };
     bindNavigation({ info:'Thông tin cửa hàng', revenue:'Doanh thu', menu:'Menu', orders:'Đơn hàng' });
     document.getElementById('filterRevenue').addEventListener('click', renderRevenue);
+    document.addEventListener('click', storeClickHandler);
 
     function renderInfo() {
       document.getElementById('storeInfoTable').innerHTML = `<tr><td>Tên cửa hàng</td><td>${currentUser.storeName || ''}</td></tr><tr><td>Email</td><td>${currentUser.email}</td></tr><tr><td>SĐT</td><td>${currentUser.phone || ''}</td></tr><tr><td>Địa chỉ</td><td>${currentUser.address || ''}</td></tr>`;
@@ -514,15 +523,22 @@
       const to = document.getElementById('toDate').value || todayISO();
       const orders = storeOrders().filter(order => (!order.orderDate || (order.orderDate >= from && order.orderDate <= to)));
       const revenue = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
-      document.getElementById('metricOrders').textContent = orders.length;
       document.getElementById('metricRevenue').textContent = formatMoney(revenue);
-      document.getElementById('metricDone').textContent = orders.filter(order => order.status === 'Đã giao').length;
       document.getElementById('revenueOrders').innerHTML = orders.length ? orders.map(orderCard).join('') : '<div class="empty-message">Không có đơn trong khoảng ngày</div>';
     }
     function renderStoreMenu() {
       const menu = getMenu(storeEmail);
       document.getElementById('storeMenuGrid').innerHTML = menu.map(food => `
-        <div class="menu-item-card"><img class="food-img" src="${food.img || DEFAULT_IMG[0]}" alt=""><div class="food-name">${food.name}</div><div class="food-desc">${food.category || ''}</div><div class="food-price">${formatMoney(food.price)}</div></div>`).join('');
+        <div class="menu-item-card">
+          <img class="food-img" src="${food.img || DEFAULT_IMG[0]}" alt="">
+          <div class="food-name">${food.name}</div>
+          <div class="food-desc">${food.category || ''}</div>
+          <div class="food-price">${formatMoney(food.price)}</div>
+          <div class="menu-actions">
+            <button class="btn btn-outline btn-sm edit-food" data-id="${food.id}"><i class="fas fa-pen"></i> Sửa</button>
+            <button class="btn btn-danger btn-sm delete-food" data-id="${food.id}"><i class="fas fa-trash"></i> Xóa</button>
+          </div>
+        </div>`).join('');
     }
     function renderStoreOrders() {
       const orders = storeOrders().reverse();
@@ -531,6 +547,50 @@
     function orderCard(order) {
       return `<div class="order-card"><div class="order-header"><span class="order-id">#${order.id}</span><span class="status-badge">${order.status}</span></div><div>${order.items.map(item => item.name + ' x' + item.quantity).join(', ')}</div><div class="total">${formatMoney(order.total)}</div><small>${order.customerName} - ${order.orderTime}</small></div>`;
     }
+    function storeClickHandler(e) {
+      const editBtn = e.target.closest('.edit-food');
+      const deleteBtn = e.target.closest('.delete-food');
+      const confirmEditBtn = e.target.closest('#confirmEditFood');
+      if (editBtn) showEditFoodModal(Number(editBtn.dataset.id));
+      if (deleteBtn) deleteFood(Number(deleteBtn.dataset.id));
+      if (confirmEditBtn) confirmEditFood(Number(confirmEditBtn.dataset.id));
+    }
+    function showEditFoodModal(foodId) {
+      const food = getMenu(storeEmail).find(item => item.id === foodId);
+      if (!food) return;
+      modal('Sửa món ăn', `
+        <div class="form-group"><label>Tên món</label><input class="form-control" id="editFoodName" value="${escapeAttr(food.name)}"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Giá</label><input class="form-control" id="editFoodPrice" type="number" min="0" value="${Number(food.price || 0)}"></div>
+          <div class="form-group"><label>Loại món</label><input class="form-control" id="editFoodCategory" value="${escapeAttr(food.category)}"></div>
+        </div>
+        <div class="form-group"><label>Ảnh</label><input class="form-control" id="editFoodImg" value="${escapeAttr(food.img)}"></div>
+        <div class="form-group"><label>Mô tả</label><textarea class="form-control" id="editFoodDesc" rows="3">${escapeAttr(food.desc)}</textarea></div>
+        <button class="btn btn-primary btn-block" id="confirmEditFood" data-id="${food.id}"><i class="fas fa-check"></i> Xác nhận sửa</button>`);
+    }
+    function confirmEditFood(foodId) {
+      const menu = getMenu(storeEmail);
+      const food = menu.find(item => item.id === foodId);
+      if (!food) return;
+      const name = document.getElementById('editFoodName').value.trim();
+      const price = Number(document.getElementById('editFoodPrice').value || 0);
+      if (!name || price <= 0) return alert('Vui lòng nhập tên món và giá hợp lệ!');
+      food.name = name;
+      food.price = price;
+      food.category = document.getElementById('editFoodCategory').value.trim();
+      food.img = document.getElementById('editFoodImg').value.trim();
+      food.desc = document.getElementById('editFoodDesc').value.trim();
+      saveMenu(storeEmail, menu);
+      document.getElementById('modalBackdrop').classList.remove('active');
+      renderStoreMenu();
+    }
+    function deleteFood(foodId) {
+      const menu = getMenu(storeEmail);
+      const food = menu.find(item => item.id === foodId);
+      if (!food || !confirm('Xóa món "' + food.name + '"?')) return;
+      saveMenu(storeEmail, menu.filter(item => item.id !== foodId));
+      renderStoreMenu();
+    }
     renderInfo();
   }
 
@@ -538,13 +598,15 @@
     shell('Shipper',
       `<button class="nav-item" data-page="profile"><i class="fas fa-user-circle"></i> Thông tin</button>
        <button class="nav-item active" data-page="pending"><i class="fas fa-clipboard-list"></i> Đơn hiện tại</button>
-       <button class="nav-item" data-page="accepted"><i class="fas fa-truck"></i> Đơn nhận giao</button>`,
+       <button class="nav-item" data-page="accepted"><i class="fas fa-truck"></i> Đơn nhận giao</button>
+       <button class="nav-item" data-page="history"><i class="fas fa-history"></i> Lịch sử đơn hàng</button>`,
       `<div class="page-section" id="profilePage"><div class="card"><div class="section-title">Thông tin</div><table class="info-table"><tr><td>Tên</td><td>${currentUser.name || ''}</td></tr><tr><td>Email</td><td>${currentUser.email}</td></tr><tr><td>SĐT</td><td>${currentUser.phone || ''}</td></tr><tr><td>Phương tiện</td><td>${currentUser.vehicle || ''}</td></tr></table></div></div>
        <div class="page-section active" id="pendingPage"><div class="orders-grid" id="pendingOrdersGrid"></div></div>
-       <div class="page-section" id="acceptedPage"><div class="orders-grid" id="acceptedOrdersGrid"></div></div>`,
+       <div class="page-section" id="acceptedPage"><div class="orders-grid" id="acceptedOrdersGrid"></div></div>
+       <div class="page-section" id="historyPage"><div class="card"><div class="section-title">Lịch sử đơn hàng</div><div class="orders-grid" id="historyOrdersGrid"></div></div></div>`,
       'Đơn hiện tại');
-    window.pageHooks = { pending: renderShipperOrders, accepted: renderShipperOrders };
-    bindNavigation({ profile:'Thông tin', pending:'Đơn hiện tại', accepted:'Đơn nhận giao' });
+    window.pageHooks = { pending: renderShipperOrders, accepted: renderShipperOrders, history: renderShipperOrders };
+    bindNavigation({ profile:'Thông tin', pending:'Đơn hiện tại', accepted:'Đơn nhận giao', history:'Lịch sử đơn hàng' });
     document.addEventListener('click', e => {
       const accept = e.target.closest('.accept-btn');
       const done = e.target.closest('.done-btn');
@@ -564,11 +626,19 @@
       const orders = getOrders();
       const pending = orders.filter(order => order.status === 'Chờ xác nhận');
       const accepted = orders.filter(order => order.shipperEmail === currentUser.email && order.status === 'Đang giao');
+      const history = orders.filter(order => order.shipperEmail === currentUser.email && order.status === 'Đã giao').reverse();
       document.getElementById('pendingOrdersGrid').innerHTML = pending.length ? pending.map(order => shipperCard(order, 'pending')).join('') : '<div class="empty-message">Không có đơn chờ</div>';
       document.getElementById('acceptedOrdersGrid').innerHTML = accepted.length ? accepted.map(order => shipperCard(order, 'accepted')).join('') : '<div class="empty-message">Chưa có đơn đang giao</div>';
+      document.getElementById('historyOrdersGrid').innerHTML = history.length ? history.map(order => shipperCard(order, 'history')).join('') : '<div class="empty-message">Chưa có lịch sử đơn hàng</div>';
     }
     function shipperCard(order, type) {
-      return `<div class="order-card"><div class="order-header"><span class="order-id">#${order.id}</span><span class="status-badge ${order.status === 'Đang giao' ? 'shipping' : ''}">${order.status}</span></div><div>${order.items.map(item => item.name + ' x' + item.quantity).join(', ')}</div><div class="muted">${order.customerAddress || ''}</div><div class="total">${formatMoney(order.total)}</div>${type === 'pending' ? `<button class="btn btn-primary accept-btn" data-id="${order.id}">Nhận giao</button>` : `<button class="btn btn-primary done-btn" data-id="${order.id}">Hoàn thành</button>`}</div>`;
+      const statusClass = order.status === 'Đang giao' ? 'shipping' : order.status === 'Đã giao' ? 'done' : '';
+      const action = type === 'pending'
+        ? `<button class="btn btn-primary accept-btn" data-id="${order.id}">Nhận giao</button>`
+        : type === 'accepted'
+          ? `<button class="btn btn-primary done-btn" data-id="${order.id}">Hoàn thành</button>`
+          : '';
+      return `<div class="order-card"><div class="order-header"><span class="order-id">#${order.id}</span><span class="status-badge ${statusClass}">${order.status}</span></div><div>${order.items.map(item => item.name + ' x' + item.quantity).join(', ')}</div><div class="muted">${order.customerAddress || ''}</div><div class="muted">${order.orderTime || ''}</div><div class="total">${formatMoney(order.total)}</div>${action}</div>`;
     }
     renderShipperOrders();
   }
