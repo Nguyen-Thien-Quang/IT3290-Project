@@ -226,14 +226,19 @@
       if (res && res.success && res.items && res.items.length > 0) {
         container.innerHTML = res.items.map(item => `
           <div class="cart-item">
-            <div><strong>Món #${item.idMonAn}</strong></div>
-            <input class="qty-input update-qty" type="number" min="1" value="${item.soLuong}" data-id="${item.idMonAn}">
-            <div>${item.soLuong} cái</div>
-            <button class="btn btn-danger btn-sm remove-cart" data-id="${item.idMonAn}"><i class="fas fa-trash"></i></button>
+            <img src="${item.img || DEFAULT_IMG}" alt="${item.tenMon}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">
+            <div style="flex:1;margin-left:15px;">
+              <div style="font-weight:600;font-size:15px;color:#333;">${item.tenMon}</div>
+              <div style="color:#B8860B;font-weight:500;margin-top:4px;">${formatMoney(item.gia)}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <input class="qty-input update-qty" type="number" min="1" value="${item.soLuong}" data-id="${item.idMonAn}" style="width:50px;text-align:center;">
+              <button class="btn btn-danger btn-sm remove-cart" data-id="${item.idMonAn}" style="padding:5px 8px;"><i class="fas fa-trash"></i></button>
+            </div>
           </div>`).join('');
-        document.getElementById('cartTotal').textContent = formatMoney(res.cart.tongTien);
+        document.getElementById('cartTotal').textContent = formatMoney(res.cart ? res.cart.tongTien : 0);
       } else {
-        container.innerHTML = '<div class="empty">Giỏ hàng trống</div>';
+        container.innerHTML = '<div class="empty-message" style="text-align:center;padding:20px;color:#888;">Giỏ hàng của bạn đang trống</div>';
         document.getElementById('cartTotal').textContent = '0đ';
       }
     }

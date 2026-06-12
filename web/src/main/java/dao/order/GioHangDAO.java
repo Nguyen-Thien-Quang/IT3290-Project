@@ -167,13 +167,17 @@ public class GioHangDAO {
     }
 
     /**
-     * Lấy danh sách các món ăn và số lượng trong một giỏ hàng.
+     * Lấy danh sách các món ăn và số lượng trong một giỏ hàng, bao gồm thông tin chi tiết của món ăn.
      * @param ghId ID của giỏ hàng.
-     * @return Danh sách các đối tượng {@link model.order.GioHangMonAn}.
+     * @return Danh sách các đối tượng {@link model.order.GioHangMonAn} đầy đủ thông tin.
      */
     public List<GioHangMonAn> getItemsByCartId(int ghId) {
         List<GioHangMonAn> list = new java.util.ArrayList<>();
-        String sql = "SELECT ID_GIOHANG, ID_MONAN, SOLUONG FROM GIOHANG_MONAN WHERE ID_GIOHANG = ?";
+        String sql = "SELECT ghma.ID_GIOHANG, ghma.ID_MONAN, ghma.SOLUONG, "
+                + "ma.ID_CUAHANG, ma.ID_LOAI, ma.TENMON, ma.TRANGTHAI, ma.GIA, ma.IMG "
+                + "FROM GIOHANG_MONAN ghma "
+                + "JOIN MONAN ma ON ghma.ID_MONAN = ma.ID_MONAN "
+                + "WHERE ghma.ID_GIOHANG = ?";
 
         try (Connection conn = new DBContext().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -184,7 +188,13 @@ public class GioHangDAO {
                     list.add(new GioHangMonAn(
                             rs.getInt("ID_GIOHANG"),
                             rs.getInt("ID_MONAN"),
-                            rs.getInt("SOLUONG")
+                            rs.getInt("SOLUONG"),
+                            rs.getInt("ID_CUAHANG"),
+                            rs.getInt("ID_LOAI"),
+                            rs.getString("TENMON"),
+                            rs.getString("TRANGTHAI"),
+                            rs.getDouble("GIA"),
+                            rs.getString("IMG")
                     ));
                 }
             }

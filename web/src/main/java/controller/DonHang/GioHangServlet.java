@@ -62,14 +62,23 @@ public class GioHangServlet extends HttpServlet {
 
         try {
             GioHang cart = gioHangDAO.getActiveCart(customerId);
+            responseMap.put("success", true);
+            
             if (cart == null) {
-                // Return empty cart structure if none exists yet
-                responseMap.put("success", true);
+                // Return empty cart structure
                 responseMap.put("message", "No active cart found");
-                responseMap.put("data", null);
+                responseMap.put("cart", null);
+                responseMap.put("items", new java.util.ArrayList<>());
             } else {
                 List<GioHangMonAn> items = gioHangDAO.getItemsByCartId(cart.getIdGioHang());
-                responseMap.put("success", true);
+                
+                // Recalculate total cost to ensure UI accuracy and avoid sync issues with DB triggers
+                double calculatedTotal = 0;
+                for (GioHangMonAn item : items) {
+                    calculatedTotal += item.getGia() * item.getSoLuong();
+                }
+                cart.setTongTien(calculatedTotal);
+                
                 responseMap.put("cart", cart);
                 responseMap.put("items", items);
             }
