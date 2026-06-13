@@ -11,7 +11,7 @@
 ### Authentication
 * **Login Required:** Yes
 * **Role:** `Cửa hàng` (Shop)
-* **Session Requirement:** Requires an active session with `user` and `storeId`.
+* **Session Requirement:** Requires an active session with `user` and `shopId`.
 
 ### Request Body
 **Example Request:**
@@ -67,10 +67,11 @@
 ```
 
 | Field | Type | Required | Description |
-| ----- | ---- | -------- | ----------- |
+| ----- | ---- | ----------- | ----------- |
 | `idMonAn` | int | Yes | ID of the item to update. |
 | `tenMon` | string | Yes | New name. |
 | `gia` | double | Yes | New price. |
+| `idLoai` | int | Yes | New category ID. |
 | `trangThai` | string | Yes | New status ('Còn hàng' or 'Hết hàng'). |
 | `img` | string | No | New image link. |
 
@@ -125,7 +126,7 @@
 ---
 
 ## Business Rules
-* **Ownership:** A store can only modify or delete food items that belong to its own `storeId`.
+* **Ownership:** A store can only modify or delete food items that belong to its own `shopId`.
 * **Deletion Constraint:** Items that have been part of past or current orders cannot be deleted (to maintain order history integrity). In such cases, use the Update API to change status to 'Hết hàng'.
 * **Default Status:** New items are automatically set to 'Còn hàng' upon creation.
 

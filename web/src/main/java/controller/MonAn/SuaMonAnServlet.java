@@ -47,14 +47,14 @@ public class SuaMonAnServlet extends HttpServlet {
             return null;
         }
 
-        Integer storeId = (Integer) session.getAttribute("storeId");
-        if (storeId == null) {
+        Integer shopId = (Integer) session.getAttribute("shopId");
+        if (shopId == null) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             responseMap.put("success", false);
             responseMap.put("message", "Store profile missing from session");
             return null;
         }
-        return storeId;
+        return shopId;
     }
 
     /**
@@ -66,8 +66,8 @@ public class SuaMonAnServlet extends HttpServlet {
         resp.setCharacterEncoding("UTF-8");
         Map<String, Object> responseMap = new HashMap<>();
 
-        Integer storeId = getStoreIdIfAuthorized(req, resp, responseMap);
-        if (storeId == null) {
+        Integer shopId = getStoreIdIfAuthorized(req, resp, responseMap);
+        if (shopId == null) {
             resp.getWriter().write(gson.toJson(responseMap));
             return;
         }
@@ -93,7 +93,7 @@ public class SuaMonAnServlet extends HttpServlet {
             double gia = json.get("gia").getAsDouble();
             String img = json.has("img") && !json.get("img").isJsonNull() ? json.get("img").getAsString() : "";
 
-            boolean success = monAnDAO.insertMonAn(storeId, idLoai, tenMon, gia, img);
+            boolean success = monAnDAO.insertMonAn(shopId, idLoai, tenMon, gia, img);
             responseMap.put("success", success);
             responseMap.put("message", success ? "Food item added successfully" : "Failed to add food item");
 
@@ -115,8 +115,8 @@ public class SuaMonAnServlet extends HttpServlet {
         resp.setCharacterEncoding("UTF-8");
         Map<String, Object> responseMap = new HashMap<>();
 
-        Integer storeId = getStoreIdIfAuthorized(req, resp, responseMap);
-        if (storeId == null) {
+        Integer shopId = getStoreIdIfAuthorized(req, resp, responseMap);
+        if (shopId == null) {
             resp.getWriter().write(gson.toJson(responseMap));
             return;
         }
@@ -129,10 +129,10 @@ public class SuaMonAnServlet extends HttpServlet {
             }
 
             JsonObject json = gson.fromJson(sb.toString(), JsonObject.class);
-            if (json == null || !json.has("idMonAn") || !json.has("tenMon") || !json.has("gia") || !json.has("trangThai")) {
+            if (json == null || !json.has("idMonAn") || !json.has("tenMon") || !json.has("gia") || !json.has("trangThai") || !json.has("idLoai")) {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 responseMap.put("success", false);
-                responseMap.put("message", "Missing required fields (idMonAn, tenMon, gia, trangThai)");
+                responseMap.put("message", "Missing required fields (idMonAn, tenMon, gia, trangThai, idLoai)");
                 resp.getWriter().write(gson.toJson(responseMap));
                 return;
             }
@@ -141,9 +141,10 @@ public class SuaMonAnServlet extends HttpServlet {
             String tenMon = json.get("tenMon").getAsString();
             double gia = json.get("gia").getAsDouble();
             String trangThai = json.get("trangThai").getAsString();
+            int idLoai = json.get("idLoai").getAsInt();
             String img = json.has("img") && !json.get("img").isJsonNull() ? json.get("img").getAsString() : "";
 
-            boolean success = monAnDAO.updateMonAn(idMonAn, storeId, tenMon, gia, trangThai, img);
+            boolean success = monAnDAO.updateMonAn(idMonAn, shopId, tenMon, gia, trangThai, img, idLoai);
             responseMap.put("success", success);
             responseMap.put("message", success ? "Food item updated successfully" : "Failed to update food item. Ensure you own this item.");
 
@@ -165,8 +166,8 @@ public class SuaMonAnServlet extends HttpServlet {
         resp.setCharacterEncoding("UTF-8");
         Map<String, Object> responseMap = new HashMap<>();
 
-        Integer storeId = getStoreIdIfAuthorized(req, resp, responseMap);
-        if (storeId == null) {
+        Integer shopId = getStoreIdIfAuthorized(req, resp, responseMap);
+        if (shopId == null) {
             resp.getWriter().write(gson.toJson(responseMap));
             return;
         }
@@ -182,7 +183,7 @@ public class SuaMonAnServlet extends HttpServlet {
 
         try {
             int idMonAn = Integer.parseInt(idStr);
-            boolean success = monAnDAO.deleteMonAn(idMonAn, storeId);
+            boolean success = monAnDAO.deleteMonAn(idMonAn, shopId);
 
             responseMap.put("success", success);
             if (success) {

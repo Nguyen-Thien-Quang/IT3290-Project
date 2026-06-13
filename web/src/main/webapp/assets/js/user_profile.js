@@ -169,8 +169,7 @@
         }
       } else {
         const res = await fetchAPI('/food/search?keyword=' + encodeURIComponent(keyword));
-        // Assuming /api/food/search returns a list of foods directly or in { data: [...] }
-        const foods = Array.isArray(res) ? res : (res.data || []);
+        const foods = (res && res.success) ? res.data : [];
         results.innerHTML = foods.length ? foods.map(food => `
         <div class="menu-item-card">
           <img class="food-img" src="${food.img || DEFAULT_IMG}" alt="">
@@ -342,18 +341,98 @@
       }
     }
 
+    let storeFoods = [];
     async function renderStoreMenu() {
       const res = await fetchAPI('/shop/foods?id=' + profileData.idCuaHang);
       if (Array.isArray(res)) {
-        document.getElementById('storeMenuGrid').innerHTML = res.map(food => `
+        storeFoods = res;
+        document.getElementById('storeMenuGrid').innerHTML = `
+          <div class="menu-item-card" id="addFoodBtn" style="border: 2px dashed #B8860B; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px;">
+            <i class="fas fa-plus-circle" style="font-size: 40px; color: #B8860B;"></i>
+            <span style="margin-top: 10px; font-weight: bold; color: #B8860B;">Thêm món mới</span>
+          </div>
+        ` + res.map(food => `
         <div class="menu-item-card">
           <img class="food-img" src="${food.img || DEFAULT_IMG}" alt="">
           <div class="food-name">${food.tenMon}</div>
           <div class="food-price">${formatMoney(food.gia)}</div>
           <div class="muted">Trạng thái: ${food.trangThai}</div>
+          <div style="margin-top: 10px; display: flex; gap: 8px;">
+            <button class="btn btn-outline btn-sm edit-food-btn" data-id="${food.idMonAn}">Sửa</button>
+            <button class="btn btn-danger btn-sm delete-food-btn" data-id="${food.idMonAn}">Xóa</button>
+          </div>
         </div>`).join('');
       }
     }
+
+    document.addEventListener('click', async (e) => {
+      if (currentUser.role !== 'store') return;
+
+      const addBtn = e.target.closest('#addFoodBtn');
+      const editBtn = e.target.closest('.edit-food-btn');
+      const deleteBtn = e.target.closest('.delete-food-btn');
+
+      if (addBtn) {
+        modal('Thêm món mới', `
+          <div class="form-group"><label>Tên món</label><input class="form-control" id="mTenMon"></div>
+          <div class="form-group"><label>ID Loại</label><input class="form-control" type="number" id="mIdLoai" value="1"></div>
+          <div class="form-group"><label>Giá</label><input class="form-control" type="number" id="mGia"></div>
+          <div class="form-group"><label>Ảnh (URL)</label><input class="form-control" id="mImg"></div>
+          <button class="btn btn-primary btn-block" id="saveAddFood" style="margin-top:10px;">Lưu</button>
+        `);
+        document.getElementById('saveAddFood').onclick = async () => {
+          const payload = {
+            tenMon: document.getElementById('mTenMon').value,
+            idLoai: Number(document.getElementById('mIdLoai').value),
+            gia: Number(document.getElementById('mGia').value),
+            img: document.getElementById('mImg').value
+          };
+          const res = await fetchAPI('/food', { method: 'POST', body: JSON.stringify(payload) });
+          if (res.success) { alert('Đã thêm!'); document.getElementById('modalClose').click(); renderStoreMenu(); }
+          else alert(res.message);
+        };
+      }
+
+      if (editBtn) {
+        const id = Number(editBtn.dataset.id);
+        const food = storeFoods.find(f => f.idMonAn === id);
+        if (food) {
+          modal('Sửa món ăn', `
+            <div class="form-group"><label>Tên món</label><input class="form-control" id="mTenMon" value="${food.tenMon}"></div>
+            <div class="form-group"><label>Giá</label><input class="form-control" type="number" id="mGia" value="${food.gia}"></div>
+            <div class="form-group"><label>Loại Món Ăn (ID)</label><input class="form-control" type="number" id="mIdLoai" value="${food.idLoai}"></div>
+            <div class="form-group"><label>Trạng thái</label>
+              <select class="form-control" id="mTrangThai">
+                <option value="Còn hàng" ${food.trangThai === 'Còn hàng' ? 'selected' : ''}>Còn hàng</option>
+                <option value="Hết hàng" ${food.trangThai === 'Hết hàng' ? 'selected' : ''}>Hết hàng</option>
+              </select>
+            </div>
+            <button class="btn btn-primary btn-block" id="saveEditFood" style="margin-top:10px;">Cập nhật</button>
+          `);
+          document.getElementById('saveEditFood').onclick = async () => {
+            const payload = {
+              idMonAn: id,
+              tenMon: document.getElementById('mTenMon').value,
+              gia: Number(document.getElementById('mGia').value),
+              trangThai: document.getElementById('mTrangThai').value,
+              idLoai: Number(document.getElementById('mIdLoai').value),
+              img: food.img // Keep existing image
+            };
+            const res = await fetchAPI('/food', { method: 'PUT', body: JSON.stringify(payload) });
+            if (res.success) { alert('Đã cập nhật!'); document.getElementById('modalClose').click(); renderStoreMenu(); }
+            else alert(res.message);
+          };
+        }
+      }
+
+      if (deleteBtn) {
+        if (confirm('Bạn có chắc muốn xóa món này?')) {
+          const res = await fetchAPI('/food?id=' + deleteBtn.dataset.id, { method: 'DELETE' });
+          if (res.success) { alert('Đã xóa!'); renderStoreMenu(); }
+          else alert(res.message);
+        }
+      }
+    });
 
     async function renderStoreOrders() {
       const res = await fetchAPI('/order/history');

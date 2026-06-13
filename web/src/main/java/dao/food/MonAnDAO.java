@@ -336,7 +336,7 @@ public class MonAnDAO {
     }
 
     /**
-     * Cửa hàng cập nhật thông tin món ăn (Tên, Giá, Trạng thái, Ảnh).
+     * Cửa hàng cập nhật thông tin món ăn (Tên, Giá, Trạng thái, Ảnh, Loại món).
      * Có đi kèm điều kiện kiểm tra ID_CUAHANG để đảm bảo quán nào chỉ được sửa món của quán đó.
      * 
      * @param monAnId ID của món ăn cần thay đổi.
@@ -345,10 +345,11 @@ public class MonAnDAO {
      * @param gia Giá mới của món ăn.
      * @param trangThai Trạng thái mới (ví dụ: N'Còn hàng', N'het_hang').
      * @param img Đường dẫn ảnh mới.
+     * @param idLoai ID loại món mới.
      * @return true nếu cập nhật thành công.
      */
-    public boolean updateMonAn(int monAnId, int storeId, String tenMon, double gia, String trangThai, String img) {
-        String sql = "UPDATE MONAN SET TENMON = ?, GIA = ?, TRANGTHAI = ?, IMG = ? "
+    public boolean updateMonAn(int monAnId, int storeId, String tenMon, double gia, String trangThai, String img, int idLoai) {
+        String sql = "UPDATE MONAN SET TENMON = ?, GIA = ?, TRANGTHAI = ?, IMG = ?, ID_LOAI = ? "
                 + "WHERE ID_MONAN = ? AND ID_CUAHANG = ?";
 
         try (Connection conn = new DBContext().getConnection();
@@ -358,8 +359,9 @@ public class MonAnDAO {
             ps.setDouble(2, gia);
             ps.setNString(3, trangThai);
             ps.setString(4, img);
-            ps.setInt(5, monAnId);
-            ps.setInt(6, storeId);
+            ps.setInt(5, idLoai);
+            ps.setInt(6, monAnId);
+            ps.setInt(7, storeId);
 
             int rowsAffected = ps.executeUpdate();
             return rowsAffected > 0;
