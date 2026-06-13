@@ -33,7 +33,13 @@ None.
     {
       "idGioHang": 25,
       "idMonAn": 10,
-      "soLuong": 2
+      "soLuong": 2,
+      "idCuaHang": 3,
+      "idLoai": 1,
+      "tenMon": "Phở Bò",
+      "trangThai": "Còn hàng",
+      "gia": 75000.0,
+      "img": "pho_bo.jpg"
     }
   ]
 }
