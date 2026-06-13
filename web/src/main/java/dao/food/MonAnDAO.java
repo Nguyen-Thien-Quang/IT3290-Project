@@ -336,26 +336,67 @@ public class MonAnDAO {
     }
 
     /**
-     * Cửa hàng cập nhật trạng thái của món ăn (Ví dụ: báo hết hàng tạm thời hoặc ngưng bán).
+     * Cửa hàng cập nhật thông tin món ăn (Tên, Giá, Trạng thái, Ảnh).
      * Có đi kèm điều kiện kiểm tra ID_CUAHANG để đảm bảo quán nào chỉ được sửa món của quán đó.
-     * * @param monAnId ID của món ăn cần thay đổi trạng thái.
+     * 
+     * @param monAnId ID của món ăn cần thay đổi.
      * @param storeId ID của cửa hàng (Dùng để xác thực quyền sở hữu món ăn).
-     * @param trangThai Trạng thái mới (ví dụ: N'Còn hàng', N'het_hang', N'ngung_kinh_doanh').
-     * @return true nếu cập nhật thành công (Trường hợp sai storeId sẽ trả về false).
+     * @param tenMon Tên mới của món ăn.
+     * @param gia Giá mới của món ăn.
+     * @param trangThai Trạng thái mới (ví dụ: N'Còn hàng', N'het_hang').
+     * @param img Đường dẫn ảnh mới.
+     * @return true nếu cập nhật thành công.
      */
-    public boolean updateTrangThaiMonAn(int monAnId, int storeId, String trangThai) {
-        // Điều kiện AND ID_CUAHANG = ? chính là chốt chặn bảo mật ở tầng Database
-        String sql = "UPDATE MONAN SET TRANGTHAI = ? WHERE ID_MONAN = ? AND ID_CUAHANG = ?";
+    public boolean updateMonAn(int monAnId, int storeId, String tenMon, double gia, String trangThai, String img) {
+        String sql = "UPDATE MONAN SET TENMON = ?, GIA = ?, TRANGTHAI = ?, IMG = ? "
+                + "WHERE ID_MONAN = ? AND ID_CUAHANG = ?";
 
         try (Connection conn = new DBContext().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setNString(1, trangThai);
-            ps.setInt(2, monAnId);
-            ps.setInt(3, storeId);
+            ps.setNString(1, tenMon);
+            ps.setDouble(2, gia);
+            ps.setNString(3, trangThai);
+            ps.setString(4, img);
+            ps.setInt(5, monAnId);
+            ps.setInt(6, storeId);
 
             int rowsAffected = ps.executeUpdate();
             return rowsAffected > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Xóa món ăn khỏi thực đơn của cửa hàng.
+     * 
+     * @param monAnId ID của món ăn cần xóa.
+     * @param storeId ID của cửa hàng (Để xác thực quyền sở hữu).
+     * @return true nếu xóa thành công.
+     * @throws RuntimeException nếu có lỗi hệ thống nghiêm trọng (không phải lỗi ràng buộc dữ liệu).
+     */
+    public boolean deleteMonAn(int monAnId, int storeId) {
+        String sql = "DELETE FROM MONAN WHERE ID_MONAN = ? AND ID_CUAHANG = ?";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, monAnId);
+            ps.setInt(2, storeId);
+
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            // Lỗi 547 trong SQL Server thường là lỗi vi phạm ràng buộc khóa ngoại (Foreign Key Constraint)
+            // Xảy ra khi món ăn này đã có trong đơn hàng/giỏ hàng của ai đó.
+            if (e.getErrorCode() == 547) {
+                System.err.println("Không thể xóa món ăn ID " + monAnId + " vì nó đã có trong lịch sử đơn hàng.");
+            } else {
+                e.printStackTrace();
+            }
+            return false;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
