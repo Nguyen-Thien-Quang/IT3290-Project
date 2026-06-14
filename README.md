@@ -208,7 +208,3 @@ Dự án được xây dựng nhằm mô phỏng quy trình hoạt động của
 
 \* HTML/CSS/JavaScript
 
-
-
-
-
