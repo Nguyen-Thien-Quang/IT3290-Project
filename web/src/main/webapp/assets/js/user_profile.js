@@ -338,14 +338,29 @@
        </table></div></div>
        <div class="page-section" id="revenuePage">
          <div class="card">
-           <div class="section-title">Dashboard doanh thu</div>
-           <div class="toolbar">
-             <div class="form-group"><label>Từ ngày</label><input class="form-control" type="date" id="fromDate" value="${firstDayISO()}"></div>
-             <div class="form-group"><label>Đến ngày</label><input class="form-control" type="date" id="toDate" value="${todayISO()}"></div>
-             <button class="btn btn-primary" id="filterRevenue">Lọc</button>
+           <div class="section-title">Phân tích kinh doanh</div>
+           <div class="order-tabs">
+             <button class="order-tab active" data-revenue-tab="stats">Doanh thu</button>
+             <button class="order-tab" data-revenue-tab="bestseller">Món bán chạy</button>
            </div>
-           <div class="metrics-grid" style="grid-template-columns:1fr;"><div class="metric-card"><div class="metric-label">Doanh thu</div><div class="metric-value" id="metricRevenue">0đ</div></div></div>
-           <div class="orders-grid" id="revenueOrders"></div>
+           
+           <div id="revenueStatsView">
+             <div class="toolbar">
+               <div class="form-group"><label>Từ ngày</label><input class="form-control" type="date" id="fromDate" value="${firstDayISO()}"></div>
+               <div class="form-group"><label>Đến ngày</label><input class="form-control" type="date" id="toDate" value="${todayISO()}"></div>
+               <button class="btn btn-primary" id="filterRevenue">Lọc</button>
+             </div>
+             <div class="metrics-grid" style="grid-template-columns:1fr;"><div class="metric-card"><div class="metric-label">Tổng doanh thu</div><div class="metric-value" id="metricRevenue">0đ</div></div></div>
+             <div class="orders-grid" id="revenueOrders"></div>
+           </div>
+
+           <div id="bestSellerView" style="display:none;">
+             <div class="toolbar">
+               <div class="form-group"><label>Số lượng món (K)</label><input class="form-control" type="number" id="bestSellerK" value="5" min="1" max="20"></div>
+               <button class="btn btn-primary" id="refreshBestSeller">Xem top</button>
+             </div>
+             <div class="orders-grid" id="bestSellerList"></div>
+           </div>
          </div>
        </div>
        <div class="page-section" id="menuPage"><div class="card"><div class="section-title">Menu món ăn</div><div class="menu-grid" id="storeMenuGrid"></div></div></div>
@@ -353,8 +368,47 @@
       'Thông tin cửa hàng');
 
     window.pageHooks = { revenue: renderRevenue, menu: renderStoreMenu, orders: renderStoreOrders };
-    bindNavigation({ info:'Thông tin cửa hàng', revenue:'Doanh thu', menu:'Menu', orders:'Đơn hàng' });
+    bindNavigation({ info:'Thông tin cửa hàng', revenue:'Phân tích kinh doanh', menu:'Menu', orders:'Đơn hàng' });
     document.getElementById('filterRevenue').addEventListener('click', renderRevenue);
+    document.getElementById('refreshBestSeller').addEventListener('click', renderBestSellers);
+
+    // Tab switching logic for Revenue page
+    document.addEventListener('click', e => {
+      const tab = e.target.closest('[data-revenue-tab]');
+      if (tab) {
+        const target = tab.dataset.revenueTab;
+        document.querySelectorAll('[data-revenue-tab]').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        if (target === 'stats') {
+          document.getElementById('revenueStatsView').style.display = 'block';
+          document.getElementById('bestSellerView').style.display = 'none';
+          renderRevenue();
+        } else {
+          document.getElementById('revenueStatsView').style.display = 'none';
+          document.getElementById('bestSellerView').style.display = 'block';
+          renderBestSellers();
+        }
+      }
+    });
+
+    async function renderBestSellers() {
+      const k = document.getElementById('bestSellerK').value || 5;
+      const res = await fetchAPI('/shop/food/bestSeller?k=' + k);
+      const container = document.getElementById('bestSellerList');
+      if (Array.isArray(res)) {
+        container.innerHTML = res.length ? res.map((item, index) => `
+          <div class="order-card">
+            <div class="order-header">
+              <span class="order-id">Top ${index + 1}</span>
+              <span class="status-badge done">${formatMoney(item.totalRevenue)}</span>
+            </div>
+            <div style="font-weight: bold; font-size: 16px; margin: 8px 0;">${item.tenMon}</div>
+            <div class="muted">ID Món: ${item.idMonAn}</div>
+          </div>
+        `).join('') : '<div class="empty-message">Chưa có dữ liệu bán hàng</div>';
+      }
+    }
 
     async function renderRevenue() {
       const from = document.getElementById('fromDate').value;
