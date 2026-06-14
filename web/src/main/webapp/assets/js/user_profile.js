@@ -281,18 +281,46 @@
     }
 
     async function renderCustomerOrders() {
+      console.log('Rendering Customer Orders...');
       const res = await fetchAPI('/order/history');
       const container = document.getElementById('customerOrdersList');
       if (res && res.success) {
-        container.innerHTML = res.data.length ? res.data.map(order => `
-        <div class="order-card">
-          <div class="order-header"><span class="order-id">#${order.idDonHang}</span><span class="status-badge">${order.trangThai}</span></div>
-          <div class="muted">${order.thoiGianDat}</div>
-          <div class="total">${formatMoney(order.tongTien)}</div>
-          <div class="muted">TT: ${order.phuongThucThanhToan}</div>
-        </div>`).join('') : '<div class="empty-message">Chưa có đơn hàng</div>';
+        console.log('Orders found:', res.data.length);
+        container.innerHTML = res.data.length ? res.data.map(order => {
+          const status = (order.trangThai || '').trim();
+          const isPending = status === 'Chờ xác nhận' || status === 'cho_xac_nhan';
+          return `
+          <div class="order-card">
+            <div class="order-header">
+              <span class="order-id">#${order.idDonHang}</span>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <span class="status-badge ${status === 'Đã hủy' ? 'cancelled' : ''}">${status}</span>
+                ${isPending ? `<button class="btn btn-danger btn-sm cancel-order-btn" data-id="${order.idDonHang}" style="padding: 4px 10px; font-weight: bold; font-size: 11px;">Hủy đơn</button>` : ''}
+              </div>
+            </div>
+            <div class="muted">${order.thoiGianDat}</div>
+            <div class="total">${formatMoney(order.tongTien)}</div>
+            <div class="muted">Thanh toán: ${order.phuongThucThanhToan}</div>
+          </div>`;
+        }).join('') : '<div class="empty-message">Chưa có đơn hàng</div>';
       }
     }
+
+    document.addEventListener('click', async (e) => {
+      const cancelBtn = e.target.closest('.cancel-order-btn');
+      if (cancelBtn) {
+        console.log('Cancel button clicked for order:', cancelBtn.dataset.id);
+        if (confirm('Bạn có chắc muốn hủy đơn hàng này?')) {
+          const res = await fetchAPI('/order/customer?id=' + cancelBtn.dataset.id, { method: 'POST' });
+          if (res && res.success) {
+            alert('Đã hủy đơn hàng thành công');
+            renderCustomerOrders();
+          } else {
+            alert(res.message || 'Không thể hủy đơn hàng');
+          }
+        }
+      }
+    });
 
     updateCartBadge();
     renderSearch();

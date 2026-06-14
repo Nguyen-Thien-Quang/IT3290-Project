@@ -55,6 +55,7 @@ body { font-family: 'Roboto', Arial, sans-serif; background: #FFFFFF; color: #00
 .status-badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 3px; background: #F0F0F0; color: #555; text-transform: uppercase; border: 1px solid #DDD; }
 .status-badge.shipping { background: #FFF3E0; color: #B8860B; border-color: #FFE0B2; }
 .status-badge.done { background: #E8F5E9; color: #2E7D32; border-color: #C8E6C9; }
+.status-badge.cancelled { background: #FFEBEE; color: #C62828; border-color: #FFCDD2; }
 .empty-message, .empty { background: white; border: 1px dashed #DDD; padding: 32px; text-align: center; color: #888; border-radius: 4px; }
 .empty-message { grid-column: 1 / -1; }
 .info-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
