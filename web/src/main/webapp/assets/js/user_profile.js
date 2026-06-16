@@ -104,11 +104,13 @@
   // --- CUSTOMER UI ---
   function renderCustomerUI() {
     shell('Khách hàng',
-      `<button class="nav-item active" data-page="search"><i class="fas fa-search"></i> Tìm kiếm</button>
-       <button class="nav-item" data-page="cart"><i class="fas fa-shopping-cart"></i> Giỏ hàng <span id="cartBadge" style="background:#B8860B;color:white;border-radius:50%;padding:2px 6px;font-size:11px;display:none;">0</span></button>
+      `<button class="nav-item active" data-page="home"><i class="fas fa-home"></i> Trang chủ</button>
+       <button class="nav-item" data-page="search"><i class="fas fa-search"></i> Tìm kiếm</button>
+       <button class="nav-item" data-page="cart"><i class="fas fa-shopping-cart"></i> Giỏ hàng <span id="cartBadge" style="background:var(--primary);color:white;border-radius:50%;padding:2px 6px;font-size:11px;display:none;">0</span></button>
        <button class="nav-item" data-page="orders"><i class="fas fa-history"></i> Lịch sử đơn</button>
        <button class="nav-item" data-page="profile"><i class="fas fa-id-card"></i> Thông tin</button>`,
-      `<div class="page-section active" id="searchPage">
+      `<div class="page-section active" id="homePage"></div>
+       <div class="page-section" id="searchPage">
          <div class="card">
            <div class="section-title"><i class="fas fa-search"></i> Tìm món / Tìm cửa hàng</div>
            <div class="search-tabs"><button class="search-tab active" data-search-tab="food">Món ăn</button><button class="search-tab" data-search-tab="store">Cửa hàng</button></div>
@@ -136,11 +138,11 @@
          <tr><td>Avatar</td><td><img class="sidebar-avatar" src="${DEFAULT_IMG}" alt=""></td></tr>
          <tr><td>Họ tên</td><td>${profileData.hoTen || ''}</td></tr><tr><td>Email</td><td>${currentUser.email}</td></tr><tr><td>SĐT</td><td>${profileData.sdt || ''}</td></tr><tr><td>Địa chỉ</td><td>${profileData.diaChi || ''}</td></tr>
        </table></div></div>`,
-      'Tìm món / Tìm cửa hàng');
+      'Trang chủ');
 
     let searchTab = 'food';
-    window.pageHooks = { cart: renderCart, orders: renderCustomerOrders, search: renderSearch };
-    bindNavigation({ search:'Tìm món / Tìm cửa hàng', cart:'Giỏ hàng', orders:'Lịch sử đơn', profile:'Thông tin cá nhân' });
+    window.pageHooks = { home: renderCustomerHome, cart: renderCart, orders: renderCustomerOrders, search: renderSearch };
+    bindNavigation({ home:'Trang chủ', search:'Tìm món / Tìm cửa hàng', cart:'Giỏ hàng', orders:'Lịch sử đơn', profile:'Thông tin cá nhân' });
 
     document.querySelectorAll('.search-tab').forEach(tab => tab.addEventListener('click', function() {
       searchTab = this.dataset.searchTab;
@@ -165,7 +167,7 @@
             <div class="store-name">${store.tenCuaHang}</div>
             <div class="muted">${store.diaChi || ''}</div>
             <button class="btn btn-outline btn-sm view-store" data-id="${store.idCuaHang}">Xem món</button>
-          </div>`).join('') : '<div class="empty-message">Không tìm thấy cửa hàng</div>';
+          </div>`).join('') : '<div class="empty-message"><i class="fas fa-store"></i> Không tìm thấy cửa hàng</div>';
         }
       } else {
         const res = await fetchAPI('/food/search?keyword=' + encodeURIComponent(keyword));
@@ -176,7 +178,7 @@
           <div class="food-name">${food.tenMon}</div>
           <div class="food-desc">Giá: ${formatMoney(food.gia)}</div>
           <button class="btn btn-primary btn-sm add-cart" data-id="${food.idMonAn}"><i class="fas fa-plus"></i> Thêm vào giỏ</button>
-        </div>`).join('') : '<div class="empty-message">Không tìm thấy món ăn</div>';
+        </div>`).join('') : '<div class="empty-message"><i class="fas fa-utensils"></i> Không tìm thấy món ăn</div>';
       }
     }
 
@@ -237,7 +239,7 @@
           </div>`).join('');
         document.getElementById('cartTotal').textContent = formatMoney(res.cart ? res.cart.tongTien : 0);
       } else {
-        container.innerHTML = '<div class="empty-message" style="text-align:center;padding:20px;color:#888;">Giỏ hàng của bạn đang trống</div>';
+        container.innerHTML = '<div class="empty-message"><i class="fas fa-shopping-cart"></i> Giỏ hàng của bạn đang trống</div>';
         document.getElementById('cartTotal').textContent = '0đ';
       }
     }
@@ -280,6 +282,51 @@
       }
     }
 
+    async function renderCustomerHome() {
+      const homeHtml = `
+        <div class="card">
+          <div class="section-title"><i class="fas fa-home"></i> Tổng quan</div>
+          <div class="metrics-grid" id="homeMetrics">
+            <div class="metric-card"><div class="metric-label">Giỏ hàng</div><div class="metric-value" id="homeCartCount">0</div></div>
+            <div class="metric-card"><div class="metric-label">Đơn chờ</div><div class="metric-value" id="homePendingCount">0</div></div>
+            <div class="metric-card"><div class="metric-label">Đã đặt</div><div class="metric-value" id="homeTotalOrders">0</div></div>
+          </div>
+        </div>
+        <div class="card" id="homeRecentOrders">
+          <div class="section-title"><i class="fas fa-clock"></i> Đơn gần đây</div>
+          <div id="homeRecentList"><div class="empty-message"><i class="fas fa-inbox"></i> Chưa có đơn hàng nào</div></div>
+        </div>
+        <div class="card">
+          <div class="section-title"><i class="fas fa-bolt"></i> Thao tác nhanh</div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="document.querySelector('[data-page=search]')?.click()"><i class="fas fa-search"></i> Tìm món</button>
+            <button class="btn btn-outline" onclick="document.querySelector('[data-page=cart]')?.click()"><i class="fas fa-shopping-cart"></i> Giỏ hàng</button>
+            <button class="btn btn-outline" onclick="document.querySelector('[data-page=orders]')?.click()"><i class="fas fa-history"></i> Đơn hàng</button>
+          </div>
+        </div>`;
+      document.getElementById('homePage').innerHTML = homeHtml;
+
+      const cart = await fetchAPI('/cart');
+      const orders = await fetchAPI('/order/history');
+      if (cart && cart.success && cart.items) {
+        const count = cart.items.reduce((s, i) => s + i.soLuong, 0);
+        document.getElementById('homeCartCount').textContent = count;
+      }
+      if (orders && orders.success && orders.data) {
+        const pending = orders.data.filter(o => o.trangThai === 'Chờ xác nhận' || o.trangThai === 'cho_xac_nhan').length;
+        document.getElementById('homePendingCount').textContent = pending;
+        document.getElementById('homeTotalOrders').textContent = orders.data.length;
+        if (orders.data.length) {
+          const recent = orders.data.slice(0, 3);
+          document.getElementById('homeRecentList').innerHTML = recent.map(o => `
+            <div class="order-card" style="margin-bottom:10px;">
+              <div class="order-header"><span class="order-id">#${o.idDonHang}</span><span class="status-badge ${o.trangThai === 'Đã hủy' ? 'cancelled' : ''}">${o.trangThai}</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span class="muted">${o.thoiGianDat || ''}</span><span class="food-price">${formatMoney(o.tongTien)}</span></div>
+            </div>`).join('');
+        }
+      }
+    }
+
     async function renderCustomerOrders() {
       console.log('Rendering Customer Orders...');
       const res = await fetchAPI('/order/history');
@@ -302,7 +349,7 @@
             <div class="total">${formatMoney(order.tongTien)}</div>
             <div class="muted">Thanh toán: ${order.phuongThucThanhToan}</div>
           </div>`;
-        }).join('') : '<div class="empty-message">Chưa có đơn hàng</div>';
+        }).join('') : '<div class="empty-message"><i class="fas fa-inbox"></i> Chưa có đơn hàng</div>';
       }
     }
 
@@ -323,17 +370,19 @@
     });
 
     updateCartBadge();
-    renderSearch();
+    renderCustomerHome();
   }
 
   // --- STORE UI ---
   function renderStoreUI() {
     shell('Cửa hàng',
-      `<button class="nav-item active" data-page="info"><i class="fas fa-info-circle"></i> Thông tin</button>
+      `<button class="nav-item active" data-page="home"><i class="fas fa-home"></i> Trang chủ</button>
+       <button class="nav-item" data-page="info"><i class="fas fa-info-circle"></i> Thông tin</button>
        <button class="nav-item" data-page="revenue"><i class="fas fa-chart-line"></i> Doanh thu</button>
        <button class="nav-item" data-page="menu"><i class="fas fa-utensils"></i> Menu</button>
        <button class="nav-item" data-page="orders"><i class="fas fa-receipt"></i> Đơn hàng</button>`,
-      `<div class="page-section active" id="infoPage"><div class="card"><div class="section-title">Thông tin cửa hàng</div><table class="info-table">
+      `<div class="page-section active" id="homePage"></div>
+       <div class="page-section" id="infoPage"><div class="card"><div class="section-title">Thông tin cửa hàng</div><table class="info-table">
          <tr><td>Tên cửa hàng</td><td>${profileData.tenCuaHang || ''}</td></tr><tr><td>Email</td><td>${currentUser.email}</td></tr><tr><td>SĐT</td><td>${profileData.sdt || ''}</td></tr><tr><td>Địa chỉ</td><td>${profileData.diaChi || ''}</td></tr>
        </table></div></div>
        <div class="page-section" id="revenuePage">
@@ -350,7 +399,11 @@
                <div class="form-group"><label>Đến ngày</label><input class="form-control" type="date" id="toDate" value="${todayISO()}"></div>
                <button class="btn btn-primary" id="filterRevenue">Lọc</button>
              </div>
-             <div class="metrics-grid" style="grid-template-columns:1fr;"><div class="metric-card"><div class="metric-label">Tổng doanh thu</div><div class="metric-value" id="metricRevenue">0đ</div></div></div>
+             <div class="metrics-grid" id="revenueMetrics">
+               <div class="metric-card"><div class="metric-label">Tổng doanh thu</div><div class="metric-value" id="metricRevenue">0đ</div></div>
+               <div class="metric-card"><div class="metric-label">Số đơn hàng</div><div class="metric-value" id="metricOrderCount">0</div></div>
+               <div class="metric-card"><div class="metric-label">TB mỗi đơn</div><div class="metric-value" id="metricAvgOrder">0đ</div></div>
+             </div>
              <div class="orders-grid" id="revenueOrders"></div>
            </div>
 
@@ -365,10 +418,10 @@
        </div>
        <div class="page-section" id="menuPage"><div class="card"><div class="section-title">Menu món ăn</div><div class="menu-grid" id="storeMenuGrid"></div></div></div>
        <div class="page-section" id="ordersPage"><div class="card"><div class="section-title">Đơn hàng của quán</div><div class="orders-grid" id="storeOrders"></div></div></div>`,
-      'Thông tin cửa hàng');
+      'Trang chủ');
 
-    window.pageHooks = { revenue: renderRevenue, menu: renderStoreMenu, orders: renderStoreOrders };
-    bindNavigation({ info:'Thông tin cửa hàng', revenue:'Phân tích kinh doanh', menu:'Menu', orders:'Đơn hàng' });
+    window.pageHooks = { home: renderStoreHome, revenue: renderRevenue, menu: renderStoreMenu, orders: renderStoreOrders };
+    bindNavigation({ home:'Trang chủ', info:'Thông tin cửa hàng', revenue:'Phân tích kinh doanh', menu:'Menu', orders:'Đơn hàng' });
     document.getElementById('filterRevenue').addEventListener('click', renderRevenue);
     document.getElementById('refreshBestSeller').addEventListener('click', renderBestSellers);
 
@@ -406,7 +459,7 @@
             <div style="font-weight: bold; font-size: 16px; margin: 8px 0;">${item.tenMon}</div>
             <div class="muted">ID Món: ${item.idMonAn}</div>
           </div>
-        `).join('') : '<div class="empty-message">Chưa có dữ liệu bán hàng</div>';
+        `).join('') : '<div class="empty-message"><i class="fas fa-chart-line"></i> Chưa có dữ liệu bán hàng</div>';
       }
     }
 
@@ -417,9 +470,12 @@
       if (res) {
         document.getElementById('metricRevenue').textContent = formatMoney(res.totalRevenue || 0);
         const orders = res.orders || [];
+        document.getElementById('metricOrderCount').textContent = orders.length;
+        const avg = orders.length ? res.totalRevenue / orders.length : 0;
+        document.getElementById('metricAvgOrder').textContent = formatMoney(avg);
         document.getElementById('revenueOrders').innerHTML = orders.length ? orders.map(order => `
           <div class="order-card"><div class="order-header"><span>#${order.idDonHang}</span><span>${order.trangThai}</span></div><div class="total">${formatMoney(order.tongTien)}</div></div>
-        `).join('') : '<div class="empty-message">Không có dữ liệu</div>';
+        `).join('') : '<div class="empty-message"><i class="fas fa-receipt"></i> Không có dữ liệu</div>';
       }
     }
 
@@ -521,28 +577,98 @@
       if (res && res.success) {
         document.getElementById('storeOrders').innerHTML = res.data.length ? res.data.map(order => `
           <div class="order-card"><div class="order-header"><span>#${order.idDonHang}</span><span>${order.trangThai}</span></div><div class="total">${formatMoney(order.tongTien)}</div><small>${order.thoiGianDat}</small></div>
-        `).join('') : '<div class="empty-message">Chưa có đơn hàng</div>';
+        `).join('') : '<div class="empty-message"><i class="fas fa-inbox"></i> Chưa có đơn hàng</div>';
       }
     }
+
+    async function renderStoreHome() {
+      const homeHtml = `
+        <div class="card">
+          <div class="section-title"><i class="fas fa-home"></i> Tổng quan</div>
+          <div class="metrics-grid" id="storeHomeMetrics">
+            <div class="metric-card"><div class="metric-label">Menu</div><div class="metric-value" id="homeMenuCount">0</div></div>
+            <div class="metric-card"><div class="metric-label">Đơn chờ</div><div class="metric-value" id="homeStorePending">0</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-title"><i class="fas fa-bolt"></i> Thao tác nhanh</div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="document.querySelector('[data-page=menu]')?.click()"><i class="fas fa-utensils"></i> Quản lý menu</button>
+            <button class="btn btn-outline" onclick="document.querySelector('[data-page=revenue]')?.click()"><i class="fas fa-chart-line"></i> Doanh thu</button>
+            <button class="btn btn-outline" onclick="document.querySelector('[data-page=orders]')?.click()"><i class="fas fa-receipt"></i> Đơn hàng</button>
+          </div>
+        </div>`;
+      document.getElementById('homePage').innerHTML = homeHtml;
+
+      const foods = await fetchAPI('/shop/foods?id=' + profileData.idCuaHang);
+      if (Array.isArray(foods)) {
+        document.getElementById('homeMenuCount').textContent = foods.length;
+      }
+
+      const orders = await fetchAPI('/order/history');
+      if (orders && orders.success && orders.data) {
+        const pending = orders.data.filter(o => o.trangThai === 'Chờ xác nhận' || o.trangThai === 'cho_xac_nhan').length;
+        document.getElementById('homeStorePending').textContent = pending;
+      }
+    }
+
+    renderStoreHome();
   }
 
   // --- SHIPPER UI ---
   function renderShipperUI() {
     shell('Shipper',
-      `<button class="nav-item active" data-page="pending"><i class="fas fa-clipboard-list"></i> Đơn hiện tại</button>
+      `<button class="nav-item active" data-page="home"><i class="fas fa-home"></i> Trang chủ</button>
+       <button class="nav-item" data-page="pending"><i class="fas fa-clipboard-list"></i> Đơn hiện tại</button>
        <button class="nav-item" data-page="accepted"><i class="fas fa-truck"></i> Đơn nhận giao</button>
        <button class="nav-item" data-page="history"><i class="fas fa-history"></i> Lịch sử đơn</button>
        <button class="nav-item" data-page="profile"><i class="fas fa-id-card"></i> Thông tin</button>`,
-      `<div class="page-section active" id="pendingPage"><div class="card"><div class="section-title">Đơn hàng đang chờ</div><div class="orders-grid" id="pendingOrdersGrid"></div></div></div>
+      `<div class="page-section active" id="homePage"></div>
+       <div class="page-section" id="pendingPage"><div class="card"><div class="section-title">Đơn hàng đang chờ</div><div class="orders-grid" id="pendingOrdersGrid"></div></div></div>
        <div class="page-section" id="acceptedPage"><div class="card"><div class="section-title">Đơn hàng đang giao</div><div class="orders-grid" id="acceptedOrdersGrid"></div></div></div>
        <div class="page-section" id="historyPage"><div class="card"><div class="section-title">Lịch sử đơn hàng</div><div class="orders-grid" id="historyOrdersGrid"></div></div></div>
        <div class="page-section" id="profilePage"><div class="card"><div class="section-title">Thông tin cá nhân</div><table class="info-table">
          <tr><td>Họ tên</td><td>${profileData.hoTen || ''}</td></tr><tr><td>Email</td><td>${currentUser.email}</td></tr><tr><td>SĐT</td><td>${profileData.sdt || ''}</td></tr><tr><td>Ngày sinh</td><td>${profileData.ngaySinh || ''}</td></tr>
        </table></div></div>`,
-      'Đơn hiện tại');
+      'Trang chủ');
 
-    window.pageHooks = { pending: renderPending, accepted: renderAccepted, history: renderHistory };
-    bindNavigation({ pending:'Đơn hiện tại', accepted:'Đơn nhận giao', history:'Lịch sử đơn hàng', profile:'Thông tin cá nhân' });
+    window.pageHooks = { home: renderShipperHome, pending: renderPending, accepted: renderAccepted, history: renderHistory };
+    bindNavigation({ home:'Trang chủ', pending:'Đơn hiện tại', accepted:'Đơn nhận giao', history:'Lịch sử đơn hàng', profile:'Thông tin cá nhân' });
+
+    async function renderShipperHome() {
+      const homeHtml = `
+        <div class="card">
+          <div class="section-title"><i class="fas fa-home"></i> Tổng quan</div>
+          <div class="metrics-grid" id="shipperHomeMetrics">
+            <div class="metric-card"><div class="metric-label">Đơn chờ</div><div class="metric-value" id="homeShipperPending">0</div></div>
+            <div class="metric-card"><div class="metric-label">Đang giao</div><div class="metric-value" id="homeShipperDelivering">0</div></div>
+            <div class="metric-card"><div class="metric-label">Đã giao</div><div class="metric-value" id="homeShipperDone">0</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-title"><i class="fas fa-bolt"></i> Thao tác nhanh</div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="document.querySelector('[data-page=pending]')?.click()"><i class="fas fa-clipboard-list"></i> Xem đơn chờ</button>
+            <button class="btn btn-outline" onclick="document.querySelector('[data-page=accepted]')?.click()"><i class="fas fa-truck"></i> Đơn đang giao</button>
+            <button class="btn btn-outline" onclick="document.querySelector('[data-page=history]')?.click()"><i class="fas fa-history"></i> Lịch sử</button>
+          </div>
+        </div>`;
+      document.getElementById('homePage').innerHTML = homeHtml;
+
+      const pending = await fetchAPI('/order');
+      if (pending && pending.success) {
+        document.getElementById('homeShipperPending').textContent = pending.data ? pending.data.length : 0;
+      }
+      const delivering = await fetchAPI('/order/shipping');
+      if (delivering && delivering.success) {
+        document.getElementById('homeShipperDelivering').textContent = delivering.data ? delivering.data.length : 0;
+      }
+      const history = await fetchAPI('/order/history');
+      if (history && history.success && history.data) {
+        const done = history.data.filter(o => o.trangThai === 'Hoàn thành' || o.trangThai === 'done').length;
+        document.getElementById('homeShipperDone').textContent = done;
+      }
+    }
 
     async function renderPending() {
       const res = await fetchAPI('/order');
@@ -552,7 +678,7 @@
             <div class="order-header"><span>#${order.idDonHang}</span><span class="status-badge">${order.trangThai}</span></div>
             <div class="total">${formatMoney(order.tongTien)}</div>
             <button class="btn btn-primary accept-btn" data-id="${order.idDonHang}">Nhận giao</button>
-          </div>`).join('') : '<div class="empty-message">Không có đơn chờ</div>';
+          </div>        `).join('') : '<div class="empty-message"><i class="fas fa-clipboard-list"></i> Không có đơn chờ</div>';
       }
     }
 
@@ -564,7 +690,7 @@
             <div class="order-header"><span>#${order.idDonHang}</span><span class="status-badge shipping">${order.trangThai}</span></div>
             <div class="total">${formatMoney(order.tongTien)}</div>
             <button class="btn btn-primary done-btn" data-id="${order.idDonHang}">Hoàn thành</button>
-          </div>`).join('') : '<div class="empty-message">Chưa có đơn đang giao</div>';
+          </div>        `).join('') : '<div class="empty-message"><i class="fas fa-truck"></i> Chưa có đơn đang giao</div>';
       }
     }
 
@@ -576,7 +702,7 @@
             <div class="order-header"><span>#${order.idDonHang}</span><span class="status-badge done">${order.trangThai}</span></div>
             <div class="total">${formatMoney(order.tongTien)}</div>
             <div class="muted">${order.thoiGianDat}</div>
-          </div>`).join('') : '<div class="empty-message">Chưa có lịch sử</div>';
+          </div>        `).join('') : '<div class="empty-message"><i class="fas fa-history"></i> Chưa có lịch sử</div>';
       }
     }
 
@@ -593,7 +719,7 @@
       }
     });
 
-    renderPending();
+    renderShipperHome();
   }
 
   window.logout = function() {

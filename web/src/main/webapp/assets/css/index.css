@@ -63,6 +63,7 @@ body::after {
   text-align: center;
   width: 420px;
   animation: fadeUp 0.6s ease-out both;
+  transition: box-shadow 0.3s ease;
 }
 
 @keyframes fadeUp {
@@ -85,11 +86,12 @@ body::after {
   opacity: 0.8;
 }
 
-.subtitle {
+.tagline {
   color: var(--text-secondary);
-  font-size: 15px;
-  margin-bottom: 32px;
+  font-size: 14px;
+  margin-bottom: 28px;
   font-weight: 400;
+  font-style: italic;
 }
 
 .role-buttons {
@@ -101,9 +103,8 @@ body::after {
 .role-btn {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 18px 24px;
+  gap: 16px;
+  padding: 16px 20px;
   font-family: 'Be Vietnam Pro', sans-serif;
   font-size: 16px;
   font-weight: 600;
@@ -116,6 +117,7 @@ body::after {
   text-decoration: none;
   position: relative;
   overflow: hidden;
+  text-align: left;
 }
 
 .role-btn::before {
@@ -128,16 +130,34 @@ body::after {
 }
 
 .role-btn i {
-  font-size: 20px;
+  font-size: 24px;
   color: var(--primary);
   position: relative;
   z-index: 1;
   transition: transform 0.25s ease;
+  flex-shrink: 0;
+  width: 36px;
+  text-align: center;
 }
 
-.role-btn span {
+.role-btn-text {
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.role-btn-title {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.role-btn-desc {
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--text-secondary);
 }
 
 .role-btn:hover {
@@ -157,4 +177,16 @@ body::after {
 
 .role-btn:active {
   transform: translateY(0);
+}
+
+@media (min-width: 640px) {
+  .role-container { width: 480px; }
+}
+
+@media (min-width: 900px) {
+  .role-container { width: 560px; }
+  .role-buttons { flex-direction: row; gap: 16px; }
+  .role-btn { flex: 1; flex-direction: column; text-align: center; padding: 24px 16px; }
+  .role-btn i { width: auto; font-size: 28px; }
+  .role-btn-text { align-items: center; }
 }
