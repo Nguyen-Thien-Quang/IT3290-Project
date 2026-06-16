@@ -101,3 +101,17 @@ CREATE TABLE DONHANG (
     FOREIGN KEY (ID_SHIPPER) REFERENCES SHIPPER(ID_SHIPPER),
     FOREIGN KEY (ID_VOUCHER) REFERENCES VOUCHER(ID_VOUCHER)
 );
+
+-- Tăng tốc truy vấn đăng nhập và tìm kiếm tài khoản theo email
+CREATE INDEX IX_TAIKHOAN_EMAIL ON TAIKHOAN(EMAIL);
+
+-- Tăng tốc truy vấn lấy danh sách món ăn của một cửa hàng
+CREATE INDEX IX_MONAN_CUAHANG ON MONAN(ID_CUAHANG);
+
+-- Tăng tốc truy vấn lấy lịch sử đơn hàng của khách hàng
+CREATE INDEX IX_DONHANG_KHACHHANG ON DONHANG(ID_KHACHHANG);
+
+-- Tăng tốc truy vấn lấy danh sách đơn hàng được giao cho shipper
+CREATE INDEX IX_DONHANG_SHIPPER ON DONHANG(ID_SHIPPER);
+
+
