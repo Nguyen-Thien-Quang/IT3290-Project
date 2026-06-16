@@ -31,6 +31,15 @@
   }
 
   function formatMoney(value) { return Number(value || 0).toLocaleString('vi-VN') + 'đ'; }
+  
+  function resolveFoodImg(img) {
+    if (!img) return DEFAULT_IMG;
+    if (img.startsWith('http') || img.startsWith('assets/') || img.startsWith('./')) return img;
+    return './assets/Foods/' + img;
+  }
+
+  const IMG_FALLBACK = `onerror="this.onerror=null;this.src='${DEFAULT_IMG}';"`;
+
   function todayISO() { return new Date().toISOString().split('T')[0]; }
   function firstDayISO() {
     const d = new Date();
@@ -174,7 +183,7 @@
         const foods = (res && res.success) ? res.data : [];
         results.innerHTML = foods.length ? foods.map(food => `
         <div class="menu-item-card">
-          <img class="food-img" src="${food.img || DEFAULT_IMG}" alt="">
+          <img class="food-img" src="${resolveFoodImg(food.img)}" ${IMG_FALLBACK} alt="">
           <div class="food-name">${food.tenMon}</div>
           <div class="food-desc">Giá: ${formatMoney(food.gia)}</div>
           <button class="btn btn-primary btn-sm add-cart" data-id="${food.idMonAn}"><i class="fas fa-plus"></i> Thêm vào giỏ</button>
@@ -201,6 +210,7 @@
         if (Array.isArray(res)) {
           modal('Menu cửa hàng', `<div class="menu-grid">${res.map(food => `
             <div class="menu-item-card">
+              <img class="food-img" src="${resolveFoodImg(food.img)}" ${IMG_FALLBACK} alt="">
               <div class="food-name">${food.tenMon}</div>
               <div class="food-price">${formatMoney(food.gia)}</div>
               <button class="btn btn-primary btn-sm add-cart" data-id="${food.idMonAn}">Thêm</button>
@@ -227,7 +237,7 @@
       if (res && res.success && res.items && res.items.length > 0) {
         container.innerHTML = res.items.map(item => `
           <div class="cart-item">
-            <img src="${item.img || DEFAULT_IMG}" alt="${item.tenMon}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">
+            <img src="${resolveFoodImg(item.img)}" ${IMG_FALLBACK} alt="${item.tenMon}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">
             <div style="flex:1;margin-left:15px;">
               <div style="font-weight:600;font-size:15px;color:#333;">${item.tenMon}</div>
               <div style="color:#B8860B;font-weight:500;margin-top:4px;">${formatMoney(item.gia)}</div>
@@ -297,6 +307,10 @@
           <div id="homeRecentList"><div class="empty-message"><i class="fas fa-inbox"></i> Chưa có đơn hàng nào</div></div>
         </div>
         <div class="card">
+          <div class="section-title"><i class="fas fa-utensils"></i> Món ăn gợi ý</div>
+          <div class="menu-grid" id="homeSuggestedFoods"></div>
+        </div>
+        <div class="card">
           <div class="section-title"><i class="fas fa-bolt"></i> Thao tác nhanh</div>
           <div style="display:flex;gap:12px;flex-wrap:wrap">
             <button class="btn btn-primary" onclick="document.querySelector('[data-page=search]')?.click()"><i class="fas fa-search"></i> Tìm món</button>
@@ -324,6 +338,18 @@
               <div style="display:flex;justify-content:space-between;align-items:center"><span class="muted">${o.thoiGianDat || ''}</span><span class="food-price">${formatMoney(o.tongTien)}</span></div>
             </div>`).join('');
         }
+      }
+
+      const suggestedRes = await fetchAPI('/food/search');
+      if (suggestedRes && suggestedRes.success && suggestedRes.data) {
+        const suggested = suggestedRes.data.slice(0, 4);
+        document.getElementById('homeSuggestedFoods').innerHTML = suggested.map(food => `
+          <div class="menu-item-card">
+            <img class="food-img" src="${resolveFoodImg(food.img)}" ${IMG_FALLBACK} alt="">
+            <div class="food-name" style="font-size:14px;">${food.tenMon}</div>
+            <div class="food-desc">${formatMoney(food.gia)}</div>
+            <button class="btn btn-primary btn-sm add-cart" data-id="${food.idMonAn}"><i class="fas fa-plus"></i></button>
+          </div>`).join('');
       }
     }
 
@@ -491,7 +517,7 @@
           </div>
         ` + res.map(food => `
         <div class="menu-item-card">
-          <img class="food-img" src="${food.img || DEFAULT_IMG}" alt="">
+          <img class="food-img" src="${resolveFoodImg(food.img)}" ${IMG_FALLBACK} alt="">
           <div class="food-name">${food.tenMon}</div>
           <div class="food-price">${formatMoney(food.gia)}</div>
           <div class="muted">Trạng thái: ${food.trangThai}</div>
