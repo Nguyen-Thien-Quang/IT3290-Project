@@ -2,8 +2,8 @@
   --bg: #f3eee4;
   --surface: #fffdf8;
   --surface-border: #1a1a1a;
-  --primary: #c4552d;
-  --primary-hover: #ad4724;
+  --primary: #c4956a;
+  --primary-hover: #d4a373;
   --danger: #d43d2a;
   --success: #2e7d5b;
   --text: #1c1c1c;
@@ -21,7 +21,11 @@ button, input, select, textarea { font-family: inherit; }
 
 body {
   font-family: 'JetBrainsMono Nerd Font', 'JetBrains Mono', monospace;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(rgba(26,26,26,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26,26,26,0.045) 1px, transparent 1px);
+  background-size: 32px 32px;
   color: var(--text);
   display: flex;
   justify-content: center;
@@ -37,7 +41,7 @@ body::before {
   position: fixed;
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(196,85,45,0.07) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(196,149,106,0.07) 0%, transparent 70%);
   top: -200px;
   left: -100px;
   pointer-events: none;
@@ -49,7 +53,7 @@ body::after {
   position: fixed;
   width: 500px;
   height: 500px;
-  background: radial-gradient(circle, rgba(196,85,45,0.05) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(196,149,106,0.05) 0%, transparent 70%);
   bottom: -150px;
   right: -100px;
   pointer-events: none;
@@ -215,7 +219,7 @@ body::after {
 .input-wrap input:focus {
   border-color: var(--surface-border);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(196,85,45,0.25);
+  box-shadow: 0 0 0 3px rgba(196,149,106,0.25);
 }
 
 .form-group select {
