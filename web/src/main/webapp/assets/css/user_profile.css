@@ -1,22 +1,25 @@
 :root {
-  --bg: #f5f0ea;
-  --surface: #ffffff;
-  --surface-2: #faf7f3;
-  --surface-3: #f0ebe4;
-  --border: rgba(0,0,0,0.06);
-  --border-light: rgba(0,0,0,0.03);
-  --primary: #c4956a;
-  --primary-hover: #d4a373;
-  --danger: #d65a3a;
-  --danger-hover: #c24e30;
-  --success: #3a9d8f;
-  --text: #2c2c2c;
-  --text-secondary: #7a7a7a;
-  --text-muted: #a09a94;
-  --radius: 12px;
-  --radius-sm: 8px;
+  --bg: #f3eee4;
+  --surface: #fffdf8;
+  --surface-2: #f6f0e6;
+  --surface-3: #ece4d8;
+  --surface-border: #1a1a1a;
+  --border: #1a1a1a;
+  --border-light: rgba(26, 26, 26, 0.35);
+  --primary: #c4552d;
+  --primary-hover: #ad4724;
+  --danger: #d43d2a;
+  --danger-hover: #b52a1e;
+  --success: #2e7d5b;
+  --text: #1c1c1c;
+  --text-secondary: #5c5c5c;
+  --text-muted: #8a8580;
+  --radius: 10px;
+  --radius-sm: 6px;
   --radius-xs: 6px;
-  --shadow: 0 4px 20px rgba(140, 110, 80, 0.06);
+  --shadow: 5px 5px 0 rgba(26, 26, 26, 0.35);
+  --shadow-sm: 3px 3px 0 rgba(26, 26, 26, 0.35);
+  --border-w: 2px;
   --sidebar-width: 240px;
   --header-height: 64px;
 }
@@ -26,8 +29,12 @@
 button, input, select, textarea { font-family: inherit; }
 
 body {
-  font-family: 'Be Vietnam Pro', sans-serif;
-  background: var(--bg);
+  font-family: 'JetBrainsMono Nerd Font', 'JetBrains Mono', monospace;
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(rgba(26,26,26,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26,26,26,0.045) 1px, transparent 1px);
+  background-size: 32px 32px;
   color: var(--text);
   line-height: 1.4;
   height: 100vh;
@@ -37,12 +44,37 @@ body {
   overflow: hidden;
 }
 
+body::before {
+  content: '';
+  position: fixed;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(196,85,45,0.07) 0%, transparent 70%);
+  top: -250px;
+  right: -200px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(196,85,45,0.05) 0%, transparent 70%);
+  bottom: -150px;
+  left: -150px;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .app-layout {
   display: flex;
   width: 100%;
   max-width: 1440px;
   height: 100vh;
   background: var(--surface);
+  border: var(--border-w) solid var(--surface-border);
   overflow: hidden;
 }
 
@@ -51,7 +83,7 @@ body {
 .sidebar {
   width: var(--sidebar-width);
   background: var(--surface-2);
-  border-right: 1px solid var(--border);
+  border-right: var(--border-w) solid var(--surface-border);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -60,12 +92,12 @@ body {
 }
 
 .logo-area {
-  font-family: 'Fraunces', serif;
+  font-family: 'JetBrainsMono Nerd Font', 'JetBrains Mono', monospace;
   font-weight: 700;
   font-size: 18px;
   color: var(--primary);
   padding: 20px 20px 16px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: var(--border-w) solid var(--surface-border);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -81,7 +113,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   padding: 12px 10px;
   overflow-y: auto;
 }
@@ -91,13 +123,13 @@ body {
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  font-family: 'Be Vietnam Pro', sans-serif;
+  font-family: 'JetBrainsMono Nerd Font', 'JetBrains Mono', monospace;
   font-weight: 500;
   font-size: 14px;
   color: var(--text-secondary);
   cursor: pointer;
   background: transparent;
-  border: none;
+  border: 2px solid transparent;
   text-align: left;
   border-radius: var(--radius-sm);
   transition: all 0.15s ease;
@@ -112,7 +144,7 @@ body {
 }
 
 .nav-item:hover {
-  background: rgba(0,0,0,0.02);
+  background: rgba(26, 26, 26, 0.05);
   color: var(--text);
 }
 
@@ -121,7 +153,8 @@ body {
 }
 
 .nav-item.active {
-  background: rgba(196,149,106,0.08);
+  background: rgba(196, 85, 45, 0.09);
+  border-color: var(--surface-border);
   color: var(--primary);
   font-weight: 600;
 }
@@ -132,7 +165,7 @@ body {
 
 .sidebar-footer {
   padding: 16px 20px;
-  border-top: 1px solid var(--border);
+  border-top: var(--border-w) solid var(--surface-border);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -148,7 +181,7 @@ body {
   height: 36px;
   border-radius: var(--radius-xs);
   object-fit: cover;
-  border: 1px solid var(--border);
+  border: var(--border-w) solid var(--surface-border);
 }
 
 /* ======== MAIN CONTENT ======== */
@@ -169,14 +202,14 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 28px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: var(--border-w) solid var(--surface-border);
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
 .page-title {
-  font-family: 'Fraunces', serif;
+  font-family: 'JetBrainsMono Nerd Font', 'JetBrains Mono', monospace;
   font-size: 20px;
   font-weight: 700;
   color: var(--text);
@@ -194,7 +227,7 @@ body {
   height: 36px;
   border-radius: var(--radius-xs);
   object-fit: cover;
-  border: 1px solid var(--border);
+  border: var(--border-w) solid var(--surface-border);
 }
 
 .header-name {
@@ -233,18 +266,19 @@ body {
 
 .card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: var(--border-w) solid var(--surface-border);
   border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
   padding: 24px;
 }
 
 .section-title {
-  font-family: 'Fraunces', serif;
+  font-family: 'JetBrainsMono Nerd Font', 'JetBrains Mono', monospace;
   font-size: 18px;
   font-weight: 700;
   color: var(--text);
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: var(--border-w) solid var(--border);
   margin-bottom: 20px;
   display: flex;
   align-items: center;
@@ -261,10 +295,10 @@ body {
 /* ======== BUTTONS ======== */
 
 .btn {
-  border: 1px solid var(--border);
+  border: var(--border-w) solid var(--surface-border);
   background: var(--surface);
   padding: 10px 20px;
-  font-family: 'Be Vietnam Pro', sans-serif;
+  font-family: 'JetBrainsMono Nerd Font', 'JetBrains Mono', monospace;
   font-weight: 600;
   font-size: 13px;
   cursor: pointer;
@@ -277,47 +311,56 @@ body {
   transition: all 0.15s ease;
   text-decoration: none;
   line-height: 1;
+  box-shadow: var(--shadow-sm);
 }
 
 .btn:hover {
   background: var(--surface-2);
-  border-color: rgba(0,0,0,0.08);
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 rgba(26, 26, 26, 0.35);
+}
+
+.btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 rgba(26, 26, 26, 0.35);
 }
 
 .btn-primary {
   background: var(--primary);
-  border-color: var(--primary);
+  border-color: var(--surface-border);
   color: #fff;
   font-weight: 700;
 }
 
 .btn-primary:hover {
   background: var(--primary-hover);
-  border-color: var(--primary-hover);
-  box-shadow: 0 4px 16px rgba(196,149,106,0.15);
+  border-color: var(--surface-border);
+  box-shadow: 4px 4px 0 rgba(26, 26, 26, 0.35);
 }
 
 .btn-danger {
   background: var(--danger);
-  border-color: var(--danger);
+  border-color: var(--surface-border);
   color: #fff;
 }
 
 .btn-danger:hover {
   background: var(--danger-hover);
-  border-color: var(--danger-hover);
+  border-color: var(--surface-border);
+  box-shadow: 4px 4px 0 rgba(26, 26, 26, 0.35);
 }
 
 .btn-outline {
   background: transparent;
-  border-color: rgba(0,0,0,0.08);
+  border-color: var(--surface-border);
   color: var(--text-secondary);
 }
 
 .btn-outline:hover {
-  border-color: rgba(196,149,106,0.3);
+  border-color: var(--primary);
   color: var(--primary);
-  background: rgba(196,149,106,0.04);
+  background: rgba(196, 85, 45, 0.05);
+  box-shadow: 4px 4px 0 rgba(26, 26, 26, 0.35);
 }
 
 .btn-sm {
@@ -355,9 +398,9 @@ body {
 .form-control {
   width: 100%;
   padding: 11px 14px;
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--surface-border);
   border-radius: var(--radius-sm);
-  font-family: 'Be Vietnam Pro', sans-serif;
+  font-family: 'JetBrainsMono Nerd Font', 'JetBrains Mono', monospace;
   font-size: 14px;
   background: var(--surface);
   color: var(--text);
@@ -365,9 +408,9 @@ body {
 }
 
 .form-control:focus {
-  border-color: rgba(196,149,106,0.3);
+  border-color: var(--surface-border);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(196,149,106,0.06);
+  box-shadow: 0 0 0 3px rgba(196, 85, 45, 0.25);
 }
 
 .form-control::placeholder {
@@ -376,7 +419,7 @@ body {
 
 select.form-control {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a7a7a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%231a1a1a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;
   padding-right: 36px;
@@ -415,20 +458,22 @@ select.form-control option {
 .store-card,
 .order-card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: var(--border-w) solid var(--surface-border);
   border-radius: var(--radius);
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
 }
 
 .menu-item-card:hover,
 .store-card:hover,
 .order-card:hover {
-  border-color: rgba(196,149,106,0.15);
+  border-color: var(--surface-border);
   background: var(--surface-2);
+  transform: translate(-1px, -1px);
   box-shadow: var(--shadow);
 }
 
@@ -438,7 +483,7 @@ select.form-control option {
   height: 130px;
   border-radius: var(--radius-sm);
   object-fit: cover;
-  border: 1px solid var(--border);
+  border: var(--border-w) solid var(--surface-border);
   background: var(--surface-3);
 }
 
@@ -477,9 +522,9 @@ select.form-control option {
 .qty-input {
   width: 76px;
   padding: 8px 10px;
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--surface-border);
   border-radius: var(--radius-xs);
-  font-family: 'Be Vietnam Pro', sans-serif;
+  font-family: 'JetBrainsMono Nerd Font', 'JetBrains Mono', monospace;
   font-size: 14px;
   background: var(--surface);
   color: var(--text);
@@ -488,7 +533,8 @@ select.form-control option {
 
 .qty-input:focus {
   outline: none;
-  border-color: rgba(196,149,106,0.3);
+  border-color: var(--surface-border);
+  box-shadow: 0 0 0 3px rgba(196, 85, 45, 0.25);
 }
 
 .cart-summary {
@@ -497,7 +543,7 @@ select.form-control option {
   gap: 8px;
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid var(--border);
+  border-top: var(--border-w) solid var(--border);
 }
 
 .summary-line {
@@ -540,27 +586,27 @@ select.form-control option {
   background: var(--surface-3);
   color: var(--text-secondary);
   text-transform: uppercase;
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--surface-border);
   letter-spacing: 0.5px;
   transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
 .status-badge.shipping {
-  background: rgba(196,149,106,0.08);
+  background: rgba(196, 85, 45, 0.08);
   color: var(--primary);
-  border-color: rgba(196,149,106,0.15);
+  border-color: var(--primary);
 }
 
 .status-badge.done {
-  background: rgba(58,157,143,0.08);
+  background: rgba(46, 125, 91, 0.08);
   color: var(--success);
-  border-color: rgba(58,157,143,0.15);
+  border-color: var(--success);
 }
 
 .status-badge.cancelled {
-  background: rgba(214,90,58,0.08);
+  background: rgba(212, 61, 42, 0.08);
   color: var(--danger);
-  border-color: rgba(214,90,58,0.15);
+  border-color: var(--danger);
 }
 
 /* ======== EMPTY STATE ======== */
@@ -568,7 +614,7 @@ select.form-control option {
 .empty-message,
 .empty {
   background: var(--surface);
-  border: 1px dashed var(--border);
+  border: var(--border-w) dashed var(--surface-border);
   padding: 40px 24px;
   text-align: center;
   color: var(--text-muted);
@@ -623,10 +669,10 @@ select.form-control option {
 .search-tab {
   padding: 8px 20px;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: var(--border-w) solid var(--surface-border);
   border-radius: 20px;
   cursor: pointer;
-  font-family: 'Be Vietnam Pro', sans-serif;
+  font-family: 'JetBrainsMono Nerd Font', 'JetBrains Mono', monospace;
   font-weight: 500;
   font-size: 13px;
   color: var(--text-secondary);
@@ -635,16 +681,19 @@ select.form-control option {
 
 .order-tab:hover,
 .search-tab:hover {
-  border-color: rgba(196,149,106,0.2);
+  border-color: var(--primary);
   color: var(--text);
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 rgba(26, 26, 26, 0.35);
 }
 
 .order-tab.active,
 .search-tab.active {
-  background: rgba(196,149,106,0.08);
-  color: var(--primary);
-  border-color: rgba(196,149,106,0.2);
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--surface-border);
   font-weight: 600;
+  box-shadow: 3px 3px 0 rgba(26, 26, 26, 0.35);
 }
 
 /* ======== METRICS ======== */
@@ -657,10 +706,11 @@ select.form-control option {
 }
 
 .metric-card {
-  border: 1px solid var(--border);
+  border: var(--border-w) solid var(--surface-border);
   background: var(--surface);
   border-radius: var(--radius);
   padding: 18px;
+  box-shadow: var(--shadow-sm);
 }
 
 .metric-label {
@@ -696,7 +746,7 @@ select.form-control option {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.25);
+  background: rgba(26, 26, 26, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -718,10 +768,10 @@ select.form-control option {
   max-height: 80vh;
   overflow-y: auto;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: var(--border-w) solid var(--surface-border);
   border-radius: var(--radius);
   padding: 24px;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow);
   animation: modalIn 0.2s ease;
 }
 
@@ -734,13 +784,13 @@ select.form-control option {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--border);
+  border-bottom: var(--border-w) solid var(--border);
   padding-bottom: 14px;
   margin-bottom: 16px;
 }
 
 .modal-title {
-  font-family: 'Fraunces', serif;
+  font-family: 'JetBrainsMono Nerd Font', 'JetBrains Mono', monospace;
   font-size: 18px;
   font-weight: 700;
   color: var(--text);
@@ -749,7 +799,7 @@ select.form-control option {
 .modal-close {
   width: 36px;
   height: 36px;
-  border: 1px solid var(--border);
+  border: var(--border-w) solid var(--surface-border);
   background: var(--surface-2);
   border-radius: var(--radius-xs);
   cursor: pointer;
@@ -801,7 +851,7 @@ select.form-control option {
   .sidebar {
     width: 100%;
     border-right: none;
-    border-bottom: 1px solid var(--border);
+    border-bottom: var(--border-w) solid var(--surface-border);
   }
 
   .nav-menu {
