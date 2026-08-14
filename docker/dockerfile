@@ -1,0 +1,22 @@
+# --- Stage 1: Build .war with Java 17 ---
+FROM maven:3.9-eclipse-temurin-17 AS builder
+
+WORKDIR /build
+
+# Since context is web/, pom.xml and src/ are directly at root of context
+COPY pom.xml .
+COPY src ./src
+
+RUN mvn clean package -DskipTests
+
+# --- Stage 2: Tomcat 10 Runtime ---
+FROM tomcat:10-jdk17-temurin
+
+RUN rm -rf /usr/local/tomcat/webapps/*
+
+# Copy the built WAR from builder stage into Tomcat
+COPY --from=builder /build/target/*.war /usr/local/tomcat/webapps/ROOT.war
+
+EXPOSE 8080
+
+CMD ["catalina.sh", "run"]

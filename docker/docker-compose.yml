@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  # --- MS SQL Server ---
+  db:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    container_name: mssql_db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Thang123
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+      # Mounts your database_backup folder into the container
+      - ./database_backup:/var/opt/mssql/backup
+    restart: always
+
+  # --- Java Web App ---
+  web-app:
+    build:
+      context: ../web               # Point to the web/ folder where pom.xml sits
+      dockerfile: ../docker/dockerfile  # Explicit path to dockerfile
+    container_name: java_tomcat_app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  mssql_data:
