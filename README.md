@@ -129,35 +129,49 @@ Chi tiết request/response cho từng API: thư mục `web/src/main/java/APIs_s
 
 ---
 
-## 🚀 Cài đặt & chạy
+## ��� Cài đặt & chạy (Docker)
 
 ### Yêu cầu
-- JDK 17+
-- Maven 3.6+
-- Microsoft SQL Server (đã tạo DB `FoodProject` với dữ liệu từ `.bak`)
+- Docker & Docker Compose (v2+)
 
 ### Các bước
 
-**1. Khôi phục database** (SQL Server Management Studio hoặc `sqlcmd`):
-```sql
-RESTORE DATABASE FoodProject FROM DISK = 'path/to/database/FoodProject.bak';
-```
-
-**2. Cấu hình kết nối** — sửa thông tin trong `web/src/main/java/context/DBContext.java` nếu khác mặc định.
-
-**3. Chạy server (Jetty, port 8080):**
+**1. Chạy docker-compose**
 ```bash
-cd web
-mvn jetty:run
+docker compose -f docker/docker-compose.yml up -d
 ```
 
-**4. Mở trình duyệt:**
-```
-http://localhost:8080/OnlineFoodWeb/
-```
+Lần đầu sẽ build image (tải Maven, JDK, Tomcat, SQL Server) — mất vài phút.
 
-> Ứng dụng trả dữ liệu **JSON** qua các API `/api/*`; frontend (HTML/CSS/JS) giao tiếp bằng Fetch API.
+**2. Khôi phục database** (bên trong container SQL Server)  
+Sau khi container `mssql_db` đã chạy (`docker compose -f docker/docker-compose.yml ps` cho thấy status `healthy` hoặc `running`):
+```bash
+# Vào container SQL Server
+docker exec -it mssql_db /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Thang123' -C -Q "RESTORE DATABASE FoodProject FROM DISK = '/var/opt/mssql/backup/FoodProject.bak' WITH MOVE 'FoodProject' TO '/var/opt/mssql/data/FoodProject.mdf', MOVE 'FoodProject_log' TO '/var/opt/mssql/data/FoodProject_log.ldf';"
+```
+> Lưu ý: `-C` để trust server certificate (SQL Server 2025 dùng encryption mặc định).
 
+**3. Mở trình duyệt**
+```
+http://localhost:8080/
+```
+> ứng dụng deploy dưới context path `/` (ROOT.war) trên Tomcat 10, port 8080.
+
+---
+
+### Thông tin kết nối DB (đã cấu hình sẵn trong docker-compose)
+- **Host**: `db` (tên service trong docker network) hoặc `localhost` từ máy host
+- **Port**: `1433`
+- **Database**: `FoodProject`
+- **User**: `sa`
+
+Nếu cần đổi mật khẩu, sửa `SA_PASSWORD` trong `docker/docker-compose.yml` và cập nhật tương ứng trong `web/src/main/java/context/DBContext.java` rồi rebuild.
+
+### Dừng & dọn dẹp
+```bash
+docker compose -f docker/docker-compose.yml down           # dừng container
+docker compose -f docker/docker-compose.yml down -v        # dừng + xóa volume data (mất DB)
+```
 ---
 
 ## 🔄 Luồng đặt hàng

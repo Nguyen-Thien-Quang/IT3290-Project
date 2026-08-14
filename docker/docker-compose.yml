@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # --- MS SQL Server ---
+  db:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    container_name: ${DB_CONTAINER_NAME:-mssql_db}
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${DB_PASSWORD}
+      - MSSQL_PID=Developer
+    ports:
+      - "${DB_PORT}:1433"
+    volumes:
+      - ${DB_VOLUME_NAME:-mssql_data}:/var/opt/mssql
+      # Mounts your database_backup folder into the container
+      - ./database_backup:/var/opt/mssql/backup
+    restart: always
+
+  # --- Java Web App ---
+  web-app:
+    build:
+      context: ../web
+      dockerfile: ../docker/dockerfile
+      args:
+        - MAVEN_OPTS=${MAVEN_OPTS}
+    container_name: ${WEB_CONTAINER_NAME:-java_tomcat_app}
+    ports:
+      - "${TOMCAT_PORT}:8080"
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_PORT=1433
+      - DB_NAME=FoodProject
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JAVA_OPTS=${JAVA_OPTS}
+    restart: unless-stopped
+
+volumes:
+  mssql_data:

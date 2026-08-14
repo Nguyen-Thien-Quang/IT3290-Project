@@ -5,9 +5,11 @@ import java.sql.DriverManager;
 
 public class DBContext {
     public Connection getConnection() throws Exception {
-        String url = "jdbc:sqlserver://localhost:1433;databaseName=FoodProject;encrypt=false";
+        // Added trustServerCertificate=true
+        String url = "jdbc:sqlserver://db:1433;databaseName=FoodProject;encrypt=false;trustServerCertificate=true;";
         String user = "sa";
-        String pass = "123456";
+        String pass = "Thang123"; // Make sure this matches the password set in your docker container
+        
         Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
         return DriverManager.getConnection(url, user, pass);
     }
