@@ -1,4 +1,4 @@
-package controller.common;
+package controller.utility;
 
 import com.google.gson.Gson;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,7 +18,6 @@ import java.util.Map;
  * }
  * </pre>
  * <p>
- * Messages are in English for API consumers. Vietnamese strings from the database
  * (e.g., order status, food status) are passed through as-is in the data payload.
  */
 public class JsonResponse {

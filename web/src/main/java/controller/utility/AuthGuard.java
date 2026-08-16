@@ -1,4 +1,4 @@
-package controller.common;
+package controller.utility;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -54,7 +54,7 @@ public class AuthGuard {
      * @throws IOException if writing error response fails
      */
     public static boolean requireRole(HttpServletRequest req, HttpServletResponse resp, String... allowedRoles) throws IOException {
-        if (!requireLogin(req, resp)) return false;
+        if (!requireLogin(req, resp)) return false;         // I thought this method must be called after requireLogin, but we can double-check here for safety
 
         HttpSession session = req.getSession(false);
         TaiKhoan user = (TaiKhoan) session.getAttribute("user");
