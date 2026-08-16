@@ -55,7 +55,9 @@ Trạng thái đơn hàng được quản lý qua các hằng số: `Chờ xác 
 | JSON | Google Gson |
 | Frontend | HTML5, CSS3 (vanilla), JavaScript (ES6+, Fetch API) |
 | Build tool | Maven (WAR package) |
+| Runtime | Tomcat 10 (Docker) |
 | Dev server | Jetty (jetty-maven-plugin, port 8080) |
+| Container | Docker & Docker Compose |
 | Kiến trúc | MVC + DAO (Model-View-Controller + Data Access Object) |
 
 ---
@@ -103,8 +105,6 @@ File backup SQL Server: **`database/FoodProject.bak`** (bao gồm schema + dữ 
 - **DONHANG** — bảng trung tâm quản lý giao dịch
 - **VOUCHER** — mã giảm giá
 
-> Thông tin kết nối (default trong `DBContext.java`): `jdbc:sqlserver://localhost:1433;databaseName=FoodProject;encrypt=false` — user `sa`, pass `123456`. Hãy điều chỉnh theo môi trường của bạn.
-
 ---
 
 ## 🔌 Danh sách API chính
@@ -129,7 +129,7 @@ Chi tiết request/response cho từng API: thư mục `web/src/main/java/APIs_s
 
 ---
 
-## ��� Cài đặt & chạy (Docker)
+## Cài đặt & chạy (Docker)
 
 ### Yêu cầu
 - Docker & Docker Compose (v2+)
