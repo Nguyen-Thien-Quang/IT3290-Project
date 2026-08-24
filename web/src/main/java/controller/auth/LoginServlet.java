@@ -39,7 +39,8 @@ public class LoginServlet extends HttpServlet {
                 sb.append(line);
             }
         }
-
+        
+        // jsonify request body
         JsonObject json;
         try {
             json = gson.fromJson(sb.toString(), JsonObject.class);
@@ -48,14 +49,17 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
+        // extract email and password from JSON
         String email = json.has("email") && !json.get("email").isJsonNull() ? json.get("email").getAsString() : null;
         String password = json.has("password") && !json.get("password").isJsonNull() ? json.get("password").getAsString() : null;
 
+        // validate email and password input
         if (email == null || password == null) {
             JsonResponse.badRequest(resp, "Email and password are required");
             return;
         }
 
+        // check if user exists and password matches
         TaiKhoan user = taiKhoanDAO.getByEmail(email);
 
         if (user == null || !HashUtil.checkPassword(password, user.getMatKhau())) {
@@ -63,6 +67,7 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
+        // create session and set user attributes
         HttpSession session = req.getSession(true);
         session.setAttribute("user", user);
 
