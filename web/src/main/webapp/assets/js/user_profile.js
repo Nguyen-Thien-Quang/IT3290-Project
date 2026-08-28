@@ -48,13 +48,13 @@
 
   async function loadProfile() {
     let endpoint = '';
-    if (currentUser.role === 'customer') endpoint = '/customer/profile';
-    else if (currentUser.role === 'shipper') endpoint = '/shipper/profile';
-    else endpoint = '/shop/profile';
+    if (currentUser.role === 'customer') endpoint = '/me/customer';
+    else if (currentUser.role === 'shipper') endpoint = '/me/shipper';
+    else endpoint = '/me/shop';
 
-    const data = await fetchAPI(endpoint);
-    if (data && !data.error) {
-      profileData = data;
+    const res = await fetchAPI(endpoint);
+    if (res && res.success) {
+      profileData = res.data;
       initUI();
     } else {
       window.location.href = 'login.html';
@@ -168,9 +168,9 @@
       const results = document.getElementById('searchResults');
       
       if (searchTab === 'store') {
-        const res = await fetchAPI('/shop/search?keyword=' + encodeURIComponent(keyword));
+        const res = await fetchAPI('/shops?keyword=' + encodeURIComponent(keyword));
         if (res && res.success) {
-          results.innerHTML = res.data.length ? res.data.map(store => `
+          results.innerHTML = res.data.shops.items.length ? res.data.shops.items.map(store => `
           <div class="store-card">
             <img class="store-img" src="${DEFAULT_IMG}" alt="">
             <div class="store-name">${store.tenCuaHang}</div>
@@ -179,8 +179,8 @@
           </div>`).join('') : '<div class="empty-message"><i class="fas fa-store"></i> Không tìm thấy cửa hàng</div>';
         }
       } else {
-        const res = await fetchAPI('/food/search?keyword=' + encodeURIComponent(keyword));
-        const foods = (res && res.success) ? res.data : [];
+        const res = await fetchAPI('/foods?keyword=' + encodeURIComponent(keyword));
+        const foods = (res && res.success) ? res.data.items : [];
         results.innerHTML = foods.length ? foods.map(food => `
         <div class="menu-item-card">
           <img class="food-img" src="${resolveFoodImg(food.img)}" ${IMG_FALLBACK} alt="">
@@ -195,7 +195,7 @@
       const addBtn = e.target.closest('.add-cart');
       const storeBtn = e.target.closest('.view-store');
       if (addBtn) {
-        const res = await fetchAPI('/cart', {
+        const res = await fetchAPI('/cart/items', {
           method: 'POST',
           body: JSON.stringify({ monAnId: Number(addBtn.dataset.id), quantity: 1 })
         });
@@ -206,9 +206,10 @@
       }
       if (storeBtn) {
         const shopId = storeBtn.dataset.id;
-        const res = await fetchAPI('/shop/foods?id=' + shopId);
-        if (Array.isArray(res)) {
-          modal('Menu cửa hàng', `<div class="menu-grid">${res.map(food => `
+        const res = await fetchAPI('/shops/' + shopId + '/menu');
+        if (res && res.success) {
+          const menuItems = res.data.menu.items;
+          modal('Menu cửa hàng', `<div class="menu-grid">${menuItems.map(food => `
             <div class="menu-item-card">
               <img class="food-img" src="${resolveFoodImg(food.img)}" ${IMG_FALLBACK} alt="">
               <div class="food-name">${food.tenMon}</div>
@@ -221,8 +222,8 @@
 
     async function updateCartBadge() {
       const res = await fetchAPI('/cart');
-      if (res && res.success && res.items) {
-        const count = res.items.reduce((sum, i) => sum + i.soLuong, 0);
+      if (res && res.success && res.data && res.data.items) {
+        const count = res.data.items.reduce((sum, i) => sum + i.soLuong, 0);
         const badge = document.getElementById('cartBadge');
         if (badge) {
           badge.textContent = count;
@@ -234,8 +235,8 @@
     async function renderCart() {
       const res = await fetchAPI('/cart');
       const container = document.getElementById('cartItems');
-      if (res && res.success && res.items && res.items.length > 0) {
-        container.innerHTML = res.items.map(item => `
+      if (res && res.success && res.data && res.data.items && res.data.items.length > 0) {
+        container.innerHTML = res.data.items.map(item => `
           <div class="cart-item">
             <img src="${resolveFoodImg(item.img)}" ${IMG_FALLBACK} alt="${item.tenMon}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">
             <div style="flex:1;margin-left:15px;">
@@ -247,7 +248,7 @@
               <button class="btn btn-danger btn-sm remove-cart" data-id="${item.idMonAn}" style="padding:5px 8px;"><i class="fas fa-trash"></i></button>
             </div>
           </div>`).join('');
-        document.getElementById('cartTotal').textContent = formatMoney(res.cart ? res.cart.tongTien : 0);
+        document.getElementById('cartTotal').textContent = formatMoney(res.data.cart ? res.data.cart.tongTien : 0);
       } else {
         container.innerHTML = '<div class="empty-message"><i class="fas fa-shopping-cart"></i> Giỏ hàng của bạn đang trống</div>';
         document.getElementById('cartTotal').textContent = '0đ';
@@ -258,9 +259,9 @@
       if (e.target.classList.contains('update-qty')) {
         const id = Number(e.target.dataset.id);
         const qty = Number(e.target.value);
-        await fetchAPI('/cart', {
+        await fetchAPI('/cart/items/' + id, {
           method: 'PUT',
-          body: JSON.stringify({ monAnId: id, quantity: qty })
+          body: JSON.stringify({ quantity: qty })
         });
         renderCart();
         updateCartBadge();
@@ -270,7 +271,7 @@
     document.addEventListener('click', async (e) => {
       const rmBtn = e.target.closest('.remove-cart');
       if (rmBtn) {
-        await fetchAPI('/cart?monAnId=' + rmBtn.dataset.id, { method: 'DELETE' });
+        await fetchAPI('/cart/items/' + rmBtn.dataset.id, { method: 'DELETE' });
         renderCart();
         updateCartBadge();
       }
@@ -279,7 +280,7 @@
     async function placeOrder() {
       const phuongThuc = document.getElementById('paymentMethodSelect').value;
       const voucherId = document.getElementById('voucherIdInput').value || null;
-      const res = await fetchAPI('/cart?action=order', {
+      const res = await fetchAPI('/cart/checkout', {
         method: 'POST',
         body: JSON.stringify({ phuongThuc, voucherId: voucherId ? Number(voucherId) : null })
       });
@@ -321,13 +322,13 @@
       document.getElementById('homePage').innerHTML = homeHtml;
 
       const cart = await fetchAPI('/cart');
-      const orders = await fetchAPI('/order/history');
-      if (cart && cart.success && cart.items) {
-        const count = cart.items.reduce((s, i) => s + i.soLuong, 0);
+      const orders = await fetchAPI('/orders?scope=history');
+      if (cart && cart.success && cart.data && cart.data.items) {
+        const count = cart.data.items.reduce((s, i) => s + i.soLuong, 0);
         document.getElementById('homeCartCount').textContent = count;
       }
       if (orders && orders.success && orders.data) {
-        const pending = orders.data.filter(o => o.trangThai === 'Chờ xác nhận' || o.trangThai === 'cho_xac_nhan').length;
+        const pending = orders.data.filter(o => o.trangThai === 'Chờ xác nhận').length;
         document.getElementById('homePendingCount').textContent = pending;
         document.getElementById('homeTotalOrders').textContent = orders.data.length;
         if (orders.data.length) {
@@ -340,9 +341,9 @@
         }
       }
 
-      const suggestedRes = await fetchAPI('/food/search');
+      const suggestedRes = await fetchAPI('/foods');
       if (suggestedRes && suggestedRes.success && suggestedRes.data) {
-        const suggested = suggestedRes.data.slice(0, 4);
+        const suggested = suggestedRes.data.items.slice(0, 4);
         document.getElementById('homeSuggestedFoods').innerHTML = suggested.map(food => `
           <div class="menu-item-card">
             <img class="food-img" src="${resolveFoodImg(food.img)}" ${IMG_FALLBACK} alt="">
@@ -355,13 +356,14 @@
 
     async function renderCustomerOrders() {
       console.log('Rendering Customer Orders...');
-      const res = await fetchAPI('/order/history');
+      const res = await fetchAPI('/orders?scope=history');
       const container = document.getElementById('customerOrdersList');
       if (res && res.success) {
-        console.log('Orders found:', res.data.length);
-        container.innerHTML = res.data.length ? res.data.map(order => {
+        const orders = res.data;
+        console.log('Orders found:', orders.length);
+        container.innerHTML = orders.length ? orders.map(order => {
           const status = (order.trangThai || '').trim();
-          const isPending = status === 'Chờ xác nhận' || status === 'cho_xac_nhan';
+          const isPending = status === 'Chờ xác nhận';
           return `
           <div class="order-card">
             <div class="order-header">
@@ -384,7 +386,7 @@
       if (cancelBtn) {
         console.log('Cancel button clicked for order:', cancelBtn.dataset.id);
         if (confirm('Bạn có chắc muốn hủy đơn hàng này?')) {
-          const res = await fetchAPI('/order/customer?id=' + cancelBtn.dataset.id, { method: 'POST' });
+          const res = await fetchAPI('/orders/' + cancelBtn.dataset.id + '/cancel', { method: 'POST' });
           if (res && res.success) {
             alert('Đã hủy đơn hàng thành công');
             renderCustomerOrders();
@@ -473,10 +475,11 @@
 
     async function renderBestSellers() {
       const k = document.getElementById('bestSellerK').value || 5;
-      const res = await fetchAPI('/shop/food/bestSeller?k=' + k);
+      const res = await fetchAPI('/me/shop/best-sellers?k=' + k);
       const container = document.getElementById('bestSellerList');
-      if (Array.isArray(res)) {
-        container.innerHTML = res.length ? res.map((item, index) => `
+      if (res && res.success && res.data) {
+        const items = res.data.items;
+        container.innerHTML = items.length ? items.map((item, index) => `
           <div class="order-card">
             <div class="order-header">
               <span class="order-id">Top ${index + 1}</span>
@@ -492,12 +495,13 @@
     async function renderRevenue() {
       const from = document.getElementById('fromDate').value;
       const to = document.getElementById('toDate').value;
-      const res = await fetchAPI(`/shop/sales?startDate=${from}&endDate=${to}`);
-      if (res) {
-        document.getElementById('metricRevenue').textContent = formatMoney(res.totalRevenue || 0);
-        const orders = res.orders || [];
+      const res = await fetchAPI(`/me/shop/revenue?startDate=${from}&endDate=${to}`);
+      if (res && res.success) {
+        const data = res.data;
+        document.getElementById('metricRevenue').textContent = formatMoney(data.totalRevenue || 0);
+        const orders = data.orders || [];
         document.getElementById('metricOrderCount').textContent = orders.length;
-        const avg = orders.length ? res.totalRevenue / orders.length : 0;
+        const avg = orders.length ? data.totalRevenue / orders.length : 0;
         document.getElementById('metricAvgOrder').textContent = formatMoney(avg);
         document.getElementById('revenueOrders').innerHTML = orders.length ? orders.map(order => `
           <div class="order-card"><div class="order-header"><span>#${order.idDonHang}</span><span>${order.trangThai}</span></div><div class="total">${formatMoney(order.tongTien)}</div></div>
@@ -507,9 +511,9 @@
 
     let storeFoods = [];
     async function renderStoreMenu() {
-      const res = await fetchAPI('/shop/foods?id=' + profileData.idCuaHang);
-      if (Array.isArray(res)) {
-        storeFoods = res;
+      const res = await fetchAPI('/me/shop/menu');
+      if (res && res.success && res.data) {
+        storeFoods = res.data.items;
         document.getElementById('storeMenuGrid').innerHTML = `
           <div class="menu-item-card" id="addFoodBtn" style="border: 2px dashed #B8860B; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px;">
             <i class="fas fa-plus-circle" style="font-size: 40px; color: #B8860B;"></i>
@@ -551,7 +555,7 @@
             gia: Number(document.getElementById('mGia').value),
             img: document.getElementById('mImg').value
           };
-          const res = await fetchAPI('/food', { method: 'POST', body: JSON.stringify(payload) });
+          const res = await fetchAPI('/me/shop/menu', { method: 'POST', body: JSON.stringify(payload) });
           if (res.success) { alert('Đã thêm!'); document.getElementById('modalClose').click(); renderStoreMenu(); }
           else alert(res.message);
         };
@@ -582,7 +586,7 @@
               idLoai: Number(document.getElementById('mIdLoai').value),
               img: food.img // Keep existing image
             };
-            const res = await fetchAPI('/food', { method: 'PUT', body: JSON.stringify(payload) });
+            const res = await fetchAPI('/me/shop/menu/' + id, { method: 'PUT', body: JSON.stringify(payload) });
             if (res.success) { alert('Đã cập nhật!'); document.getElementById('modalClose').click(); renderStoreMenu(); }
             else alert(res.message);
           };
@@ -591,7 +595,7 @@
 
       if (deleteBtn) {
         if (confirm('Bạn có chắc muốn xóa món này?')) {
-          const res = await fetchAPI('/food?id=' + deleteBtn.dataset.id, { method: 'DELETE' });
+          const res = await fetchAPI('/me/shop/menu/' + deleteBtn.dataset.id, { method: 'DELETE' });
           if (res.success) { alert('Đã xóa!'); renderStoreMenu(); }
           else alert(res.message);
         }
@@ -599,9 +603,10 @@
     });
 
     async function renderStoreOrders() {
-      const res = await fetchAPI('/order/history');
-      if (res && res.success) {
-        document.getElementById('storeOrders').innerHTML = res.data.length ? res.data.map(order => `
+      const res = await fetchAPI('/orders?scope=history');
+      if (res && res.success && res.data) {
+        const orders = res.data;
+        document.getElementById('storeOrders').innerHTML = orders.length ? orders.map(order => `
           <div class="order-card"><div class="order-header"><span>#${order.idDonHang}</span><span>${order.trangThai}</span></div><div class="total">${formatMoney(order.tongTien)}</div><small>${order.thoiGianDat}</small></div>
         `).join('') : '<div class="empty-message"><i class="fas fa-inbox"></i> Chưa có đơn hàng</div>';
       }
@@ -626,14 +631,14 @@
         </div>`;
       document.getElementById('homePage').innerHTML = homeHtml;
 
-      const foods = await fetchAPI('/shop/foods?id=' + profileData.idCuaHang);
-      if (Array.isArray(foods)) {
-        document.getElementById('homeMenuCount').textContent = foods.length;
+      const foods = await fetchAPI('/me/shop/menu');
+      if (foods && foods.success && foods.data) {
+        document.getElementById('homeMenuCount').textContent = foods.data.items.length;
       }
 
-      const orders = await fetchAPI('/order/history');
+      const orders = await fetchAPI('/orders?scope=history');
       if (orders && orders.success && orders.data) {
-        const pending = orders.data.filter(o => o.trangThai === 'Chờ xác nhận' || o.trangThai === 'cho_xac_nhan').length;
+        const pending = orders.data.filter(o => o.trangThai === 'Chờ xác nhận').length;
         document.getElementById('homeStorePending').textContent = pending;
       }
     }
@@ -681,25 +686,29 @@
         </div>`;
       document.getElementById('homePage').innerHTML = homeHtml;
 
-      const pending = await fetchAPI('/order');
+      const pending = await fetchAPI('/orders?status=pending');
       if (pending && pending.success) {
-        document.getElementById('homeShipperPending').textContent = pending.data ? pending.data.length : 0;
+        const items = pending.data?.orders || [];
+        document.getElementById('homeShipperPending').textContent = items.length;
       }
-      const delivering = await fetchAPI('/order/shipping');
+      const delivering = await fetchAPI('/orders?status=shipping');
       if (delivering && delivering.success) {
-        document.getElementById('homeShipperDelivering').textContent = delivering.data ? delivering.data.length : 0;
+        const items = delivering.data?.orders || [];
+        document.getElementById('homeShipperDelivering').textContent = items.length;
       }
-      const history = await fetchAPI('/order/history');
+      const history = await fetchAPI('/orders?scope=history');
       if (history && history.success && history.data) {
-        const done = history.data.filter(o => o.trangThai === 'Hoàn thành' || o.trangThai === 'done').length;
+        const orders = history.data.orders || [];
+        const done = orders.filter(o => o.trangThai === 'Đã giao').length;
         document.getElementById('homeShipperDone').textContent = done;
       }
     }
 
     async function renderPending() {
-      const res = await fetchAPI('/order');
+      const res = await fetchAPI('/orders?status=pending');
       if (res && res.success) {
-        document.getElementById('pendingOrdersGrid').innerHTML = res.data.length ? res.data.map(order => `
+        const orders = res.data?.orders || [];
+        document.getElementById('pendingOrdersGrid').innerHTML = orders.length ? orders.map(order => `
           <div class="order-card">
             <div class="order-header"><span>#${order.idDonHang}</span><span class="status-badge">${order.trangThai}</span></div>
             <div class="total">${formatMoney(order.tongTien)}</div>
@@ -709,9 +718,10 @@
     }
 
     async function renderAccepted() {
-      const res = await fetchAPI('/order/shipping');
+      const res = await fetchAPI('/orders?status=shipping');
       if (res && res.success) {
-        document.getElementById('acceptedOrdersGrid').innerHTML = res.data.length ? res.data.map(order => `
+        const orders = res.data?.orders || [];
+        document.getElementById('acceptedOrdersGrid').innerHTML = orders.length ? orders.map(order => `
           <div class="order-card">
             <div class="order-header"><span>#${order.idDonHang}</span><span class="status-badge shipping">${order.trangThai}</span></div>
             <div class="total">${formatMoney(order.tongTien)}</div>
@@ -721,9 +731,10 @@
     }
 
     async function renderHistory() {
-      const res = await fetchAPI('/order/history');
+      const res = await fetchAPI('/orders?scope=history');
       if (res && res.success) {
-        document.getElementById('historyOrdersGrid').innerHTML = res.data.length ? res.data.map(order => `
+        const orders = res.data?.orders || [];
+        document.getElementById('historyOrdersGrid').innerHTML = orders.length ? orders.map(order => `
           <div class="order-card">
             <div class="order-header"><span>#${order.idDonHang}</span><span class="status-badge done">${order.trangThai}</span></div>
             <div class="total">${formatMoney(order.tongTien)}</div>
@@ -736,11 +747,11 @@
       const acceptBtn = e.target.closest('.accept-btn');
       const doneBtn = e.target.closest('.done-btn');
       if (acceptBtn) {
-        const res = await fetchAPI('/order?id=' + acceptBtn.dataset.id, { method: 'POST' });
+        const res = await fetchAPI('/orders/' + acceptBtn.dataset.id + '/accept', { method: 'POST' });
         if (res && res.success) { alert('Đã nhận đơn!'); renderPending(); }
       }
       if (doneBtn) {
-        const res = await fetchAPI('/order/shipping?id=' + doneBtn.dataset.id, { method: 'POST' });
+        const res = await fetchAPI('/orders/' + doneBtn.dataset.id + '/deliver', { method: 'POST' });
         if (res && res.success) { alert('Đã hoàn thành!'); renderAccepted(); }
       }
     });

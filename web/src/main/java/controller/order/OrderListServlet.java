@@ -84,11 +84,6 @@ public class OrderListServlet extends HttpServlet {
             return;
         }
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("message", "Orders retrieved successfully");
-        response.put("data", data);
-
-        JsonResponse.ok(resp, "Orders retrieved successfully", response);
+        JsonResponse.ok(resp, "Orders retrieved successfully", data);
     }
 }

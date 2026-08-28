@@ -61,29 +61,25 @@ document.getElementById('registerForm').addEventListener('submit', async functio
   const email = document.getElementById('regEmail').value.trim();
   const password = document.getElementById('regPassword').value;
 
-  let payload = { email, password };
-  let endpoint = '';
+  let payload = { email, password, role };
 
   if (role === 'customer') {
-    endpoint = 'api/customer/register';
     payload.name = document.getElementById('regName').value.trim();
     payload.birthday = document.getElementById('regDob').value;
     payload.address = document.getElementById('regAddress').value.trim();
-    payload.SDT = document.getElementById('regPhone').value.trim();
+    payload.sdt = document.getElementById('regPhone').value.trim();
   } else if (role === 'shipper') {
-    endpoint = 'api/shipper/register';
     payload.name = document.getElementById('regName').value.trim();
     payload.birthday = document.getElementById('regDob').value;
-    payload.SDT = document.getElementById('regPhone').value.trim();
+    payload.sdt = document.getElementById('regPhone').value.trim();
   } else {
-    endpoint = 'api/shop/register';
     payload.name = document.getElementById('regStoreName').value.trim();
     payload.address = document.getElementById('regAddress').value.trim();
-    payload.SDT = document.getElementById('regPhone').value.trim();
+    payload.sdt = document.getElementById('regPhone').value.trim();
   }
 
   try {
-    const response = await fetch(endpoint, {
+    const response = await fetch('api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -113,10 +109,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
   const errorEl = document.getElementById('loginError');
   errorEl.style.display = 'none';
 
-  let endpoint = '';
-  if (role === 'customer') endpoint = 'api/customer/login';
-  else if (role === 'shipper') endpoint = 'api/shipper/login';
-  else endpoint = 'api/shop/login';
+  let endpoint = 'api/auth/login';
 
   try {
     const response = await fetch(endpoint, {
@@ -127,10 +120,11 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
     const result = await response.json();
     if (result.success) {
-      // Store current user info for frontend use (role is critical)
+      const roleSlug = { 'Khách hàng': 'customer', 'Cửa hàng': 'store', 'Shipper': 'shipper' };
+      const userRole = roleSlug[result.data?.role] || role;
       localStorage.setItem('currentUser', JSON.stringify({
-        email: result.email,
-        role: role // 'customer', 'shipper', or 'store'
+        email: result.data?.email || email,
+        role: userRole
       }));
       window.location.href = 'user_profile.html';
     } else {
