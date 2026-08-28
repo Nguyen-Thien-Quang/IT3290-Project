@@ -19,6 +19,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// return list of orders for the authenticated user based on their role
+// eg: GET /api/orders?scope=active for customer
+// eg: GET /api/orders?status=pending for shipper
 @WebServlet("/api/orders")
 public class OrderListServlet extends HttpServlet {
     private final Gson gson = new Gson();
