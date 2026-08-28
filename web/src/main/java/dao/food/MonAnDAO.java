@@ -118,6 +118,39 @@ public class MonAnDAO {
     }
 
     /**
+     * Lấy thông tin chi tiết một món ăn theo ID.
+     * @param foodId ID của món ăn cần tìm.
+     * @return Đối tượng MonAn nếu tìm thấy, ngược lại trả về null.
+     */
+    public MonAn getById(int foodId) {
+        String sql = "SELECT ID_MONAN, ID_CUAHANG, ID_LOAI, TENMON, TRANGTHAI, GIA, IMG "
+                + "FROM MONAN WHERE ID_MONAN = ?";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, foodId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new MonAn(
+                            rs.getInt("ID_MONAN"),
+                            rs.getInt("ID_CUAHANG"),
+                            rs.getInt("ID_LOAI"),
+                            rs.getNString("TENMON"),
+                            rs.getNString("TRANGTHAI"),
+                            rs.getDouble("GIA"),
+                            rs.getString("IMG")
+                    );
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
      * Lọc danh sách các món ăn thuộc một danh mục (loại món ăn) cụ thể.
      * Chỉ hiển thị các món ăn đang ở trạng thái 'Còn hàng'.
      * * @param idLoai Mã định danh duy nhất của loại món ăn cần lọc (ví dụ: ID của Đồ uống, Món chính).
