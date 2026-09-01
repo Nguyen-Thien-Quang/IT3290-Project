@@ -162,6 +162,34 @@ public class TaiKhoanDAO {
     }
 
     /**
+     * Retrieves TaiKhoan by email including the stored password hash.
+     * Used for bcrypt verification in application layer.
+     *
+     * @param email email to look up
+     * @return TaiKhoan with hash in matKhau field, or null if not found
+     */
+    public TaiKhoan getByEmail(String email) {
+        String sql = "SELECT ID_TAIKHOAN, EMAIL, MATKHAU, VAITRO FROM TAIKHOAN WHERE EMAIL = ?";
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new TaiKhoan(
+                            rs.getInt("ID_TAIKHOAN"),
+                            rs.getString("EMAIL"),
+                            rs.getString("MATKHAU"),
+                            rs.getString("VAITRO")
+                    );
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
      * Kiểm tra xem một Email đã được đăng ký trong hệ thống hay chưa.
      * Dùng để chặn trùng lặp dữ liệu khi người dùng đăng ký tài khoản mới.
      * * @param email Chuỗi email cần kiểm tra.
