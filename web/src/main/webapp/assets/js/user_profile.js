@@ -1,6 +1,6 @@
 (function() {
   const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-  if (!currentUser) { window.location.href = 'login.html'; return; }
+  if (!currentUser) { window.location.href = 'index.html'; return; }
 
   const API_BASE = 'api';
   const DEFAULT_IMG = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=640&q=80';
@@ -20,7 +20,7 @@
         }
       });
       if (response.status === 401) {
-        window.location.href = 'login.html';
+        window.location.href = 'index.html';
         return null;
       }
       return await response.json();
@@ -57,7 +57,7 @@
       profileData = res.data;
       initUI();
     } else {
-      window.location.href = 'login.html';
+      window.location.href = 'index.html';
     }
   }
 
@@ -206,7 +206,7 @@
       }
       if (storeBtn) {
         const shopId = storeBtn.dataset.id;
-        const res = await fetchAPI('/shops/' + shopId + '/menu');
+        const res = await fetchAPI('/shops/menu/' + shopId);
         if (res && res.success) {
           const menuItems = res.data.menu.items;
           modal('Menu cửa hàng', `<div class="menu-grid">${menuItems.map(food => `
@@ -761,7 +761,7 @@
 
   window.logout = function() {
     localStorage.removeItem('currentUser');
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
   };
 
   loadProfile();

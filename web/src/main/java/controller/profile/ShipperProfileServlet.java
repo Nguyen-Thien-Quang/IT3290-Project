@@ -27,7 +27,7 @@ public class ShipperProfileServlet extends HttpServlet {
             return;
         }
 
-        Shipper shipper = shipperDAO.getShipperByAccountId(shipperId);
+        Shipper shipper = shipperDAO.getShipperProfileById(shipperId);
         if (shipper == null) {
             JsonResponse.notFound(resp, "Shipper profile not found");
             return;

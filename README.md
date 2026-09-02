@@ -134,7 +134,7 @@ File backup SQL Server: **`database/FoodProject.bak`** (bao gồm schema + dữ 
 | GET | `/api/foods/{id}` | Xem chi tiết món ăn |
 | GET | `/api/shops?keyword=&page=&size=` | Tìm cửa hàng theo từ khóa |
 | GET | `/api/shops/{id}` | Xem chi tiết cửa hàng |
-| GET | `/api/shops/{id}/menu` | Xem menu công khai của cửa hàng |
+| GET | `/api/shops/menu/{id}` | Xem menu công khai của cửa hàng |
 
 ### Giỏ hàng & Đặt hàng (Customer)
 

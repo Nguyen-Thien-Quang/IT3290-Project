@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@WebServlet("/api/shops/*/menu")
+@WebServlet("/api/shops/menu/*")
 public class ShopMenuPublicServlet extends HttpServlet {
     private final MonAnDAO monAnDAO = new MonAnDAO();
     private final Gson gson = new Gson();
