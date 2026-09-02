@@ -33,7 +33,7 @@ public class CustomerProfileServlet extends HttpServlet {
             return;
         }
 
-        KhachHang khInfo = khDao.getByAccountId(customerId);
+        KhachHang khInfo = khDao.getProfileById(customerId);
         if (khInfo == null) {
             JsonResponse.notFound(resp, "Customer profile not found");
             return;

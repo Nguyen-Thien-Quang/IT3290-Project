@@ -27,7 +27,7 @@ public class ShopProfileServlet extends HttpServlet {
             return;
         }
 
-        CuaHang shop = cuaHangDAO.getCuaHangByAccountId(shopId);
+        CuaHang shop = cuaHangDAO.getStoreProfileById(shopId);
         if (shop == null) {
             JsonResponse.notFound(resp, "Shop profile not found");
             return;
