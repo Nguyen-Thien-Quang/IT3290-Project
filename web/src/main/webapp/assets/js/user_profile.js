@@ -287,7 +287,11 @@
       });
       if (res && res.success) {
         alert('Đặt hàng thành công!');
-        updateCartBadge();
+        const badge = document.getElementById('cartBadge');
+        if (badge) {
+          badge.textContent = '0';
+          badge.style.display = 'none';
+        }
         document.querySelector('[data-page="orders"]').click();
       } else {
         alert(res.message || 'Đặt hàng thất bại');
