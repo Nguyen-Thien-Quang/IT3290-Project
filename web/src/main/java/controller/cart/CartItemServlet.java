@@ -6,7 +6,7 @@ import com.google.gson.JsonObject;
 import controller.utility.AuthGuard;
 import controller.utility.JsonResponse;
 import dao.order.GioHangDAO;
-import model.order.GioHangMonAn;
+import model.order.GioHang;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -15,7 +15,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 
@@ -25,7 +24,19 @@ public class CartItemServlet extends HttpServlet {
     private final Gson gson = new Gson();
     private final GioHangDAO gioHangDAO = new GioHangDAO();
 
-    
+    private int getActiveCartId(Integer customerId, HttpServletResponse resp) throws IOException {
+        GioHang cart = gioHangDAO.getActiveCart(customerId);
+        if (cart == null) {
+            int newId = gioHangDAO.createCart(customerId);
+            if (newId == -1) {
+                JsonResponse.internalError(resp, "Failed to create cart");
+                return -1;
+            }
+            return newId;
+        }
+        return cart.getIdGioHang();
+    }
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("application/json");
@@ -71,7 +82,10 @@ public class CartItemServlet extends HttpServlet {
             quantity = json.get("quantity").getAsInt();
         }
 
-        gioHangDAO.addItemToCart(customerId, monAnId, quantity);
+        int ghId = getActiveCartId(customerId, resp);
+        if (ghId == -1) return;
+
+        gioHangDAO.addItemToCart(ghId, monAnId, quantity);
 
         Map<String, Object> data = new HashMap<>();
         data.put("monAnId", monAnId);
@@ -125,7 +139,10 @@ public class CartItemServlet extends HttpServlet {
             quantity = json.get("quantity").getAsInt();
         }
 
-        boolean updated = gioHangDAO.updateSoLuongMonAnInGioHang(customerId, monAnId, quantity);
+        int ghId = getActiveCartId(customerId, resp);
+        if (ghId == -1) return;
+
+        boolean updated = gioHangDAO.updateSoLuongMonAnInGioHang(ghId, monAnId, quantity);
         if (!updated) {
             JsonResponse.notFound(resp, "Item not found in cart");
             return;
@@ -163,7 +180,10 @@ public class CartItemServlet extends HttpServlet {
             return;
         }
 
-        boolean removed = gioHangDAO.removeMonAnFromGioHang(customerId, monAnId);
+        int ghId = getActiveCartId(customerId, resp);
+        if (ghId == -1) return;
+
+        boolean removed = gioHangDAO.removeMonAnFromGioHang(ghId, monAnId);
         if (!removed) {
             JsonResponse.notFound(resp, "Item not found in cart");
             return;

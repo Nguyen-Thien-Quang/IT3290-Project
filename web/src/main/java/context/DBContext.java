@@ -11,7 +11,7 @@ public class DBContext {
         String user = System.getenv("DB_USER");
         String pass = System.getenv("DB_PASSWORD");
 
-        if (host == null) host = "db";
+        if (host == null) host = "localhost";
         if (port == null) port = "1433";
         if (dbName == null) dbName = "FoodProject";
         if (user == null) user = "sa";

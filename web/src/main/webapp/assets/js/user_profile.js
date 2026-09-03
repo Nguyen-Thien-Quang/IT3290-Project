@@ -41,6 +41,7 @@
   const IMG_FALLBACK = `onerror="this.onerror=null;this.src='${DEFAULT_IMG}';"`;
 
   function todayISO() { return new Date().toISOString().split('T')[0]; }
+  // get the first day of current month
   function firstDayISO() {
     const d = new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
@@ -195,9 +196,9 @@
       const addBtn = e.target.closest('.add-cart');
       const storeBtn = e.target.closest('.view-store');
       if (addBtn) {
-        const res = await fetchAPI('/cart/items', {
+        const res = await fetchAPI('/cart/items/' + addBtn.dataset.id, {
           method: 'POST',
-          body: JSON.stringify({ monAnId: Number(addBtn.dataset.id), quantity: 1 })
+          body: JSON.stringify({ quantity: 1 })
         });
         if (res && res.success) {
           alert('Đã thêm vào giỏ hàng');
