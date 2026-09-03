@@ -524,7 +524,7 @@
             <i class="fas fa-plus-circle" style="font-size: 40px; color: #B8860B;"></i>
             <span style="margin-top: 10px; font-weight: bold; color: #B8860B;">Thêm món mới</span>
           </div>
-        ` + res.map(food => `
+        ` + storeFoods.map(food => `
         <div class="menu-item-card">
           <img class="food-img" src="${resolveFoodImg(food.img)}" ${IMG_FALLBACK} alt="">
           <div class="food-name">${food.tenMon}</div>
