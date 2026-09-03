@@ -363,8 +363,8 @@
       console.log('Rendering Customer Orders...');
       const res = await fetchAPI('/orders?scope=history');
       const container = document.getElementById('customerOrdersList');
-      if (res && res.success) {
-        const orders = res.data;
+      if (res && res.success && res.data && res.data.orders) {
+        const orders = res.data.orders;
         console.log('Orders found:', orders.length);
         container.innerHTML = orders.length ? orders.map(order => {
           const status = (order.trangThai || '').trim();
@@ -609,8 +609,8 @@
 
     async function renderStoreOrders() {
       const res = await fetchAPI('/orders?scope=history');
-      if (res && res.success && res.data) {
-        const orders = res.data;
+      if (res && res.success && res.data && res.data.orders) {
+        const orders = res.data.orders;
         document.getElementById('storeOrders').innerHTML = orders.length ? orders.map(order => `
           <div class="order-card"><div class="order-header"><span>#${order.idDonHang}</span><span>${order.trangThai}</span></div><div class="total">${formatMoney(order.tongTien)}</div><small>${order.thoiGianDat}</small></div>
         `).join('') : '<div class="empty-message"><i class="fas fa-inbox"></i> Chưa có đơn hàng</div>';

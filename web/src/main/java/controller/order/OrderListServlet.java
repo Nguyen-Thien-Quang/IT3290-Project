@@ -32,40 +32,55 @@ public class OrderListServlet extends HttpServlet {
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
 
-        Integer customerId = AuthGuard.requireCustomerId(req, resp);
-        Integer shopId = AuthGuard.requireShopId(req, resp);
-        Integer shipperId = AuthGuard.requireShipperId(req, resp);
+        // Check role via session directly to avoid multiple guards writing to response
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            JsonResponse.unauthorized(resp, "Authentication required");
+            return;
+        }
+
+        model.user.TaiKhoan user = (model.user.TaiKhoan) session.getAttribute("user");
+        String role = user.getVaiTro();
 
         Map<String, Object> data = new HashMap<>();
         List<DonHang> orders = null;
-        String errorMsg = null;
 
-        if (customerId != null) {
-            // Customer role
+        if (roles.CUSTOMER.equals(role)) {
+            Integer customerId = (Integer) session.getAttribute("customerId");
+            if (customerId == null) {
+                JsonResponse.internalError(resp, "Customer ID not found in session");
+                return;
+            }
             String scope = req.getParameter("scope");
             if ("active".equals(scope)) {
                 orders = donHangDAO.getActiveOrdersByKhachHang(customerId);
             } else if ("history".equals(scope)) {
                 orders = donHangDAO.getHistoryByKhachHang(customerId);
             } else {
-                // Default: try to get active orders
                 orders = donHangDAO.getActiveOrdersByKhachHang(customerId);
             }
             data.put("orders", orders);
             data.put("role", "customer");
-        } else if (shopId != null) {
-            // Shop role
+        } else if (roles.SHOP.equals(role)) {
+            Integer shopId = (Integer) session.getAttribute("shopId");
+            if (shopId == null) {
+                JsonResponse.internalError(resp, "Shop ID not found in session");
+                return;
+            }
             String status = req.getParameter("status");
             if (status != null) {
                 orders = donHangDAO.getOrdersByStoreAndStatus(shopId, status);
             } else {
-                // Default: get all orders for this store
                 orders = donHangDAO.getOrdersByStore(shopId);
             }
             data.put("orders", orders);
             data.put("role", "shop");
-        } else if (shipperId != null) {
-            // Shipper role
+        } else if (roles.SHIPPER.equals(role)) {
+            Integer shipperId = (Integer) session.getAttribute("shipperId");
+            if (shipperId == null) {
+                JsonResponse.internalError(resp, "Shipper ID not found in session");
+                return;
+            }
             String status = req.getParameter("status");
             if ("pending".equals(status)) {
                 orders = donHangDAO.getPendingOrdersForShipper();
@@ -74,13 +89,12 @@ public class OrderListServlet extends HttpServlet {
             } else if ("history".equals(req.getParameter("scope"))) {
                 orders = donHangDAO.getDonHangsByShipper(shipperId);
             } else {
-                // Default: pending orders
                 orders = donHangDAO.getPendingOrdersForShipper();
             }
             data.put("orders", orders);
             data.put("role", "shipper");
         } else {
-            JsonResponse.unauthorized(resp, "Authentication required");
+            JsonResponse.forbidden(resp, "Unknown role");
             return;
         }
 
